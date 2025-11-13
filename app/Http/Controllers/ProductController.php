@@ -1,0 +1,146 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\ProductFormRequest;
+use App\Models\Product;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
+
+class ProductController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        // dd("index");
+        // $products = Product::all();
+
+        $products = Product::latest()->get()->map(fn($product) => [ 
+            'id' => $product->id,
+            'name' => $product->name,
+            'description' => $product->description,
+            'price' => $product->price,
+            'created_at' => $product->created_at->format('d M Y'),
+            'image' => $product->image = $product->image
+                ? asset('storage/' . $product->image)
+                : null,
+        ]);
+
+        return Inertia::render('products/index', [
+            'products' => $products,
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        // dd("create");
+        return Inertia::render('products/product-form');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     * @param ProductFormRequest $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function store(ProductFormRequest $request)
+    {
+        // dd($request->all());
+        try {
+            $image = null;
+            if ($request->file('image')) {
+                $image = $request->file('image');
+                $imageOriginalName = $image->getClientOriginalName();
+                $image = $image->store('products', 'public');
+            }
+
+            $product = Product::create([
+                'name' => $request->name,
+                'description' => $request->description,
+                'image' => $image,
+                'image_original_name' => $imageOriginalName,
+                'price' => $request->price,
+            ]);
+
+            if ($product) {
+                return redirect()->route('products.index')->with('success', 'Product created successfully.');
+            }
+
+            return redirect()->back()->with('error', 'Failed to create product. Please try again.');
+        } catch (Exception $e) {
+            Log::error('Error creating product: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Product $product)
+    {
+        return Inertia::render('products/product-form', [
+            'product' => $product,
+            'isView' => true,
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Product $product)
+    {
+        // dd("edit");
+        return Inertia::render('products/product-form', [
+            'product' => $product,
+            'isEdit' => true,
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(ProductFormRequest $request, Product $product)
+    {
+        // dd("update");
+        if ($product){
+            $product->name = $request->name;
+            $product->description = $request->description;
+            $product->price = $request->price;
+
+            if ($request->file('image')) {
+                $image = $request->file('image');
+                $imageOriginalName = $image->getClientOriginalName();
+                $image = $image->store('products', 'public');
+
+                $product->image = $image;
+                $product->image_original_name = $imageOriginalName;
+            }
+
+            $product->save();
+
+            return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+        }
+        
+        return redirect()->back()->with('error', 'Failed to update product. Please try again.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Product $product)
+    {
+        // dd("destroy");
+        if ($product){
+            $product->delete();
+
+            return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
+        }
+        
+        return redirect()->back()->with('error', 'Failed to delete product. Please try again.');
+    }
+}
