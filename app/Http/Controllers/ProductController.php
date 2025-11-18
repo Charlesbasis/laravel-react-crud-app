@@ -20,6 +20,19 @@ class ProductController extends Controller
         // $products = Product::all();
 
         // dump($request->all());
+
+        // Log::debug("🔄 {$request} REQUEST", [
+        //     'timestamp' => now()->format('H:i:s:v'),
+        //     'search' => $request->search,
+        //     'url' => $request->fullUrl(),
+        //     'referrer' => $request->header('referer'),
+        //     'method' => $request->method(),
+        // ]);
+
+        // Add request fingerprint to detect duplicates
+        // $requestFingerprint = md5($request->fullUrl() . $request->header('User-Agent') . microtime());
+        // Log::debug('🔢 Request Fingerprint', ['fingerprint' => $requestFingerprint]);
+
         $products = Product::query();
 
         if ($request->filled('search')) {
@@ -46,6 +59,7 @@ class ProductController extends Controller
         ]);
 
         // dd($products);
+        // Log::debug('Request ID: ' . uniqid(), ['search' => $request->search]);
 
         return Inertia::render('products/index', [
             'products' => $products,

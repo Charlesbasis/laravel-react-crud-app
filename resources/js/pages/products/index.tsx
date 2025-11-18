@@ -22,19 +22,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index() {
-// export default function Index({ products, filters }: IndexProps) {
-// const Index = ({ products, filters }: IndexProps) => {
-
     const { props } = usePage<PageProps>();
     const { products, filters } = props;
 
-    // Use a ref to store the initial filter value and ignore updates
     const initialFilters = useRef(props.filters);
     const [localSearch, setLocalSearch] = useState(initialFilters.current.search || '');
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const requestInProgress = useRef(false);
 
-    // Track previous values to avoid duplicate logs
     const previousProducts = useRef(products);
     const previousFilters = useRef(filters);
 
@@ -70,6 +65,40 @@ export default function Index() {
         }, 500);
     }, [executeSearch]);
 
+    // ADD THIS: Prevent form submission on Enter key
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            console.log('⏹️ Prevented form submission on Enter');
+            
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+            executeSearch(localSearch);
+        }
+    }, [localSearch, executeSearch]);
+
+    // FIXED RESET FUNCTION
+    // const handleReset = useCallback(() => {
+    //     console.log('🔄 Resetting search');
+    //     setLocalSearch('');
+        
+    //     // Clear any pending search timeout
+    //     if (searchTimeoutRef.current) {
+    //         clearTimeout(searchTimeoutRef.current);
+    //         searchTimeoutRef.current = null;
+    //     }
+        
+    //     // Only make request if we actually have a search value to clear
+    //     if (filters.search) {
+    //         router.get(productsIndex().url, {}, {
+    //             preserveScroll: true,
+    //             preserveState: true,
+    //             replace: true, // Add replace to prevent history buildup
+    //         });
+    //     }
+    // }, [filters.search]);
+
     // Smart logging - only log when data actually changes
     useEffect(() => {
         const productsChanged =
@@ -90,34 +119,50 @@ export default function Index() {
         }
     }, [products, filters]);
 
-    const handleReset = () => {
-        setLocalSearch('');
-        router.get(productsIndex().url, {}, {
-            preserveScroll: true,
-            preserveState: true,
-        });
-    };
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, []);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Products Management" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-lg-xl p-4">
-                <div className='mb-4 flex w-full items-center justify-between gap-4'>
+                {/* ADD FORM PREVENTION WRAPPER */}
+                <div 
+                    onSubmit={(e) => e.preventDefault()}
+                    className='mb-4 flex w-full items-center justify-between gap-4'
+                >
                     <Input
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown} // ADD THIS
                         value={localSearch}
-                        // value={data.search}
                         type='text'
                         placeholder='Search Product ...'
                         name='search'
                         className='w-1/2'
                     />
-                    <Button 
-                        className='cursor pointer bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg' 
-                        onClick={handleReset}
+                    <Link
+                        href={productsIndex().url}
+                        preserveScroll
+                        preserveState
+                        replace
+                        as="button"
+                        className='cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center'
                     >
                         <X size={20} />
-                    </Button>
+                    </Link>
+                    {/* <Button 
+                        className='cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg' 
+                        onClick={handleReset}
+                        type="button" // ADD THIS to prevent form submission
+                    >
+                        <X size={20} />
+                    </Button> */}
                     <div className='ml-auto'>
                         <Link
                             as="button"
@@ -172,9 +217,9 @@ export default function Index() {
                                         className="ms-2 cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold p-2 rounded-lg"
                                         onClick={() => {
                                             if (confirm('Are you sure you want to delete this product?')) {
-                                                router.delete(productsDestroy(product.id).url), {
+                                                router.delete(productsDestroy(product.id).url, { // FIXED: Added comma
                                                     preserveScroll: true,
-                                                };
+                                                });
                                             }
                                         }}
                                     >
