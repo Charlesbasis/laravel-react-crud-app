@@ -66,7 +66,7 @@ export interface ProductPagination {
 }
 
 export interface FilterProps {
-    search: string;
+    search?: string;
 }
 
 export interface IndexProps {

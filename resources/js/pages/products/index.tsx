@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import AppLayout from '@/layouts/app-layout';
-import { IndexProps, type BreadcrumbItem } from '@/types';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { type BreadcrumbItem } from '@/types';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Eye, Pencil, Trash, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -20,28 +21,77 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Index({ products, filters }: IndexProps) {
+export default function Index() {
+// export default function Index({ products, filters }: IndexProps) {
+// const Index = ({ products, filters }: IndexProps) => {
 
-    console.log('check products', filters);
+    const { props } = usePage<PageProps>();
+    const { products, filters } = props;
 
-    const { data, setData } = useForm({
-        search: filters.search || '',
-    });
+    // Use a ref to store the initial filter value and ignore updates
+    const initialFilters = useRef(props.filters);
+    const [localSearch, setLocalSearch] = useState(initialFilters.current.search || '');
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const requestInProgress = useRef(false);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setData('search', value);
+    // Track previous values to avoid duplicate logs
+    const previousProducts = useRef(products);
+    const previousFilters = useRef(filters);
 
+    const executeSearch = useCallback((value: string) => {
+        if (requestInProgress.current) return;
+
+        requestInProgress.current = true;
         const queryString = value ? { search: value } : {};
+
+        console.log('🚀 Making Inertia request with:', queryString);
 
         router.get(productsIndex().url, queryString, {
             preserveScroll: true,
             preserveState: true,
+            replace: true,
+            onFinish: () => {
+                requestInProgress.current = false;
+            },
         });
-    };
+    }, []);
+
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        console.log('⌨️ Input changed:', value);
+        setLocalSearch(value);
+
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+
+        searchTimeoutRef.current = setTimeout(() => {
+            executeSearch(value);
+        }, 500);
+    }, [executeSearch]);
+
+    // Smart logging - only log when data actually changes
+    useEffect(() => {
+        const productsChanged =
+            previousProducts.current.data.length !== products.data.length ||
+            previousProducts.current.current_page !== products.current_page;
+
+        const filtersChanged = previousFilters.current.search !== filters.search;
+
+        if (productsChanged || filtersChanged) {
+            console.log('📦 Products updated:', {
+                items: products.data.length,
+                page: products.current_page,
+                search: filters.search
+            });
+
+            previousProducts.current = products;
+            previousFilters.current = filters;
+        }
+    }, [products, filters]);
 
     const handleReset = () => {
-        setData('search', '');
+        setLocalSearch('');
         router.get(productsIndex().url, {}, {
             preserveScroll: true,
             preserveState: true,
@@ -55,7 +105,8 @@ export default function Index({ products, filters }: IndexProps) {
                 <div className='mb-4 flex w-full items-center justify-between gap-4'>
                     <Input
                         onChange={handleChange}
-                        value={data.search}
+                        value={localSearch}
+                        // value={data.search}
                         type='text'
                         placeholder='Search Product ...'
                         name='search'
@@ -92,7 +143,7 @@ export default function Index({ products, filters }: IndexProps) {
                     </thead>
 
                     <tbody>
-                        {products.data?.map((product, index) => (
+                        {products.data?.map((product: any, index: number) => (
                             <tr key={index}>
                                 <td className='border px-4 py-2 text-center'>{index + 1}</td>
                                 <td className='border px-4 py-2 text-center'>{product.name}</td>
