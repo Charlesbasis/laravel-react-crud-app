@@ -42,6 +42,12 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
+export interface LinkProps {
+    active: boolean;
+    label: string;
+    url: string | null;
+}
+
 export interface Product {
     id: number;
     name: string;
@@ -49,4 +55,28 @@ export interface Product {
     image: string;
     price: number;
     created_at: string;
+}
+
+export interface ProductPagination {
+    data: Product[];
+    links: LinkProps[];
+    from: number;
+    to: number;
+    total: number;
+}
+
+export interface FilterProps {
+    search: string;
+}
+
+export interface IndexProps {
+    products: ProductPagination;
+    filters: FilterProps;
+}
+
+export interface PaginationData {
+    links: LinkProps[];
+    from: number;
+    to: number;
+    total: number;
 }

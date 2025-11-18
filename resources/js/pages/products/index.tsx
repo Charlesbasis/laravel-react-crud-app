@@ -1,15 +1,17 @@
 import {
     create as productsCreate,
-    index as productsIndex,
-    show as productsShow,
+    destroy as productsDestroy,
     edit as productsEdit,
-    destroy as productsDestroy
+    index as productsIndex,
+    show as productsShow
 } from '@/actions/App/Http/Controllers/ProductController';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Pagination } from '@/components/ui/pagination';
 import AppLayout from '@/layouts/app-layout';
-import { Product, type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
-import { Eye, Pencil, Trash } from 'lucide-react';
+import { IndexProps, type BreadcrumbItem } from '@/types';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Eye, Pencil, Trash, X } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -18,25 +20,62 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Index({ ...props }: { products: Product[] }) {
-    
-    const { products } = props;
+export default function Index({ products, filters }: IndexProps) {
 
-    console.log('check products', products);
-    
+    console.log('check products', filters);
+
+    const { data, setData } = useForm({
+        search: filters.search || '',
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setData('search', value);
+
+        const queryString = value ? { search: value } : {};
+
+        router.get(productsIndex().url, queryString, {
+            preserveScroll: true,
+            preserveState: true,
+        });
+    };
+
+    const handleReset = () => {
+        setData('search', '');
+        router.get(productsIndex().url, {}, {
+            preserveScroll: true,
+            preserveState: true,
+        });
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Products Management" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-lg-xl p-4">
-                
-                <div className='ml-auto'>
-                    <Link
-                        as="button"
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
-                        href={productsCreate().url}
+                <div className='mb-4 flex w-full items-center justify-between gap-4'>
+                    <Input
+                        onChange={handleChange}
+                        value={data.search}
+                        type='text'
+                        placeholder='Search Product ...'
+                        name='search'
+                        className='w-1/2'
+                    />
+                    <Button 
+                        className='cursor pointer bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg' 
+                        onClick={handleReset}
                     >
-                        Add Product
-                    </Link>
+                        <X size={20} />
+                    </Button>
+                    <div className='ml-auto'>
+                        <Link
+                            as="button"
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+                            href={productsCreate().url}
+                        >
+                            Add Product
+                        </Link>
+                    </div>
                 </div>
 
                 <table className='w-full table-auto'>
@@ -51,9 +90,9 @@ export default function Index({ ...props }: { products: Product[] }) {
                             <th className='p-4 border'>Actions</th>
                         </tr>
                     </thead>
-                    
+
                     <tbody>
-                        {products?.map((product, index) => (
+                        {products.data?.map((product, index) => (
                             <tr key={index}>
                                 <td className='border px-4 py-2 text-center'>{index + 1}</td>
                                 <td className='border px-4 py-2 text-center'>{product.name}</td>
@@ -95,6 +134,7 @@ export default function Index({ ...props }: { products: Product[] }) {
                         ))}
                     </tbody>
                 </table>
+                <Pagination products={products} />
             </div>
         </AppLayout>
     );

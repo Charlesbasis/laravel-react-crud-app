@@ -1,4 +1,5 @@
 import { create as productsCreate, store as productsStore, update as productsUpdate } from '@/actions/App/Http/Controllers/ProductController';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -73,6 +74,8 @@ export default function ProductForm({ ...props }) {
                                     disabled={isView || processing}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 />
+
+                                <InputError message={errors.name} />
                             </div>
                             <div className="col-span-6 sm:col-span-4">
                                 <Label htmlFor="description" className="block text-sm font-medium text-gray-700">
@@ -88,6 +91,7 @@ export default function ProductForm({ ...props }) {
                                     disabled={isView || processing}                                    
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 />
+                                <InputError message={errors.description} />
                             </div>
                             <div className="col-span-6 sm:col-span-4">
                                 <Label htmlFor="price" className="block text-sm font-medium text-gray-700">
@@ -102,6 +106,7 @@ export default function ProductForm({ ...props }) {
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                     disabled={isView || processing}
                                 />
+                                <InputError message={errors.price} />
                             </div>
                             {!isView && (
                                 <div className="col-span-6 sm:col-span-4">
@@ -109,7 +114,7 @@ export default function ProductForm({ ...props }) {
                                         Image
                                     </Label>
                                     <Input
-                                        required
+                                        
                                         onChange={handleFileUpload}
                                         type="file"
                                         name="image"
@@ -118,6 +123,7 @@ export default function ProductForm({ ...props }) {
                                         autoFocus
                                         tabIndex={4}
                                     />
+                                    <InputError message={errors.image} />
                                 </div>
                             )}
 
