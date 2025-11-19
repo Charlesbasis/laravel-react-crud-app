@@ -43,7 +43,14 @@ class ProductController extends Controller
                     ->orWhere('description', 'like', "%{$search}%")
                     ->orWhere('price', 'like', "%{$search}%")
             );
-        }       
+        }
+        
+        if ($request->filled('sort')) {
+            $sort = $request->sort;
+            $direction = $request->direction ?? 'desc';
+            
+            $products->orderBy($sort, $direction);
+        }
         
         $products = $products->latest()->paginate(2)->withQueryString();
         
@@ -63,7 +70,7 @@ class ProductController extends Controller
 
         return Inertia::render('products/index', [
             'products' => $products,
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'sort', 'direction']),
         ]);
     }
 

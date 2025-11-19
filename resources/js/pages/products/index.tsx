@@ -8,8 +8,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
+import { SortableHeader } from '@/components/ui/sortable-header';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { SortField, SortProps, type BreadcrumbItem } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Eye, Pencil, Trash, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -30,18 +31,52 @@ export default function Index() {
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const requestInProgress = useRef(false);
 
+    const [sortConfig, setSortConfig] = useState<SortProps>({
+        field: 'created_at',
+        direction: 'asc'
+    });
+
     const previousProducts = useRef(products);
     const previousFilters = useRef(filters);
+
+    // const executeSearch = useCallback((value: string) => {
+    //     if (requestInProgress.current) return;
+
+    //     requestInProgress.current = true;
+        
+    //     const queryString = value ? { search: value } : {};
+
+    //     console.log('🚀 Making Inertia request with:', queryString);
+
+    //     router.get(productsIndex().url, queryString, {
+    //         preserveScroll: true,
+    //         preserveState: true,
+    //         replace: true,
+    //         onFinish: () => {
+    //             requestInProgress.current = false;
+    //         },
+    //     });
+    // }, []);
 
     const executeSearch = useCallback((value: string) => {
         if (requestInProgress.current) return;
 
         requestInProgress.current = true;
-        const queryString = value ? { search: value } : {};
 
-        console.log('🚀 Making Inertia request with:', queryString);
+        const queryParams: any = {
+            search: value,
+            sort: sortConfig.field,
+            direction: sortConfig.direction
+        };
 
-        router.get(productsIndex().url, queryString, {
+        Object.keys(queryParams).forEach((key) => {
+            if (queryParams[key] === undefined) {
+                delete queryParams[key];
+            }
+        });
+        
+        console.log('Sorting Request', queryParams)
+        router.get(productsIndex().url, queryParams, {
             preserveScroll: true,
             preserveState: true,
             replace: true,
@@ -49,8 +84,8 @@ export default function Index() {
                 requestInProgress.current = false;
             },
         });
-    }, []);
-
+    }, [sortConfig]);
+    
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         console.log('⌨️ Input changed:', value);
@@ -65,7 +100,6 @@ export default function Index() {
         }, 500);
     }, [executeSearch]);
 
-    // ADD THIS: Prevent form submission on Enter key
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -78,28 +112,6 @@ export default function Index() {
         }
     }, [localSearch, executeSearch]);
 
-    // FIXED RESET FUNCTION
-    // const handleReset = useCallback(() => {
-    //     console.log('🔄 Resetting search');
-    //     setLocalSearch('');
-        
-    //     // Clear any pending search timeout
-    //     if (searchTimeoutRef.current) {
-    //         clearTimeout(searchTimeoutRef.current);
-    //         searchTimeoutRef.current = null;
-    //     }
-        
-    //     // Only make request if we actually have a search value to clear
-    //     if (filters.search) {
-    //         router.get(productsIndex().url, {}, {
-    //             preserveScroll: true,
-    //             preserveState: true,
-    //             replace: true, // Add replace to prevent history buildup
-    //         });
-    //     }
-    // }, [filters.search]);
-
-    // Smart logging - only log when data actually changes
     useEffect(() => {
         const productsChanged =
             previousProducts.current.data.length !== products.data.length ||
@@ -119,7 +131,6 @@ export default function Index() {
         }
     }, [products, filters]);
 
-    // Cleanup timeout on unmount
     useEffect(() => {
         return () => {
             if (searchTimeoutRef.current) {
@@ -128,6 +139,66 @@ export default function Index() {
         };
     }, []);
 
+    const handleSort = useCallback((field: SortField) => {
+        if (requestInProgress.current) return;
+
+        let newDirection: SortProps['direction'] = 'asc';
+        if (sortConfig.field === field) {
+            newDirection = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+        }
+
+        const newSortConfig: SortProps = {
+            field,
+            direction: newDirection
+        };
+        
+        setSortConfig(newSortConfig);
+
+        requestInProgress.current = true;
+        
+        const queryParams: any = {
+            search: localSearch,
+            sort: newSortConfig.field,
+            direction: newSortConfig.direction
+        };
+
+        Object.keys(queryParams).forEach((key) => {
+            if (queryParams[key] === undefined) {
+                delete queryParams[key];
+            }
+        });
+        console.log('Sorting Request', queryParams)
+        router.get(productsIndex().url, queryParams, {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+            onFinish: () => {
+                requestInProgress.current = false;
+            },
+        });
+    }, [sortConfig, localSearch, requestInProgress]);
+    
+    useEffect(() => {
+        const productsChanged =
+            previousProducts.current.data.length !== products.data.length ||
+            previousProducts.current.current_page !== products.current_page;
+
+        const filtersChanged = previousFilters.current.search !== filters.search;
+
+        if (productsChanged || filtersChanged) {
+            console.log('📦 Products updated:', {
+                items: products.data.length,
+                page: products.current_page,
+                search: filters.search,
+                sort: filters.sort,
+                direction: filters.direction
+            });
+
+            previousProducts.current = products;
+            previousFilters.current = filters;
+        }
+    }, [products, filters]);
+    
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Products Management" />
@@ -156,13 +227,6 @@ export default function Index() {
                     >
                         <X size={20} />
                     </Link>
-                    {/* <Button 
-                        className='cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg' 
-                        onClick={handleReset}
-                        type="button" // ADD THIS to prevent form submission
-                    >
-                        <X size={20} />
-                    </Button> */}
                     <div className='ml-auto'>
                         <Link
                             as="button"
@@ -178,11 +242,15 @@ export default function Index() {
                     <thead>
                         <tr className='bg-gray-700 text-white'>
                             <th className='p-4 border'>#</th>
-                            <th className='p-4 border'>Name</th>
+                            {/* <th className='p-4 border'>Name</th>
                             <th className='p-4 border'>Description</th>
-                            <th className='p-4 border'>Price</th>
+                            <th className='p-4 border'>Price</th>                            
+                            <th className='p-4 border'>Created Date</th> */}
+                            <SortableHeader field="name" currentSort={sortConfig} onSort={handleSort} className='p-4 border'>Name</SortableHeader>
+                            <SortableHeader field="description" currentSort={sortConfig} onSort={handleSort} className='p-4 border'>Description</SortableHeader>
+                            <SortableHeader field="price" currentSort={sortConfig} onSort={handleSort} className='p-4 border'>Price</SortableHeader>
                             <th className='p-4 border'>Image</th>
-                            <th className='p-4 border'>Created Date</th>
+                            <SortableHeader field="created_at" currentSort={sortConfig} onSort={handleSort} className='p-4 border'>Created Date</SortableHeader>
                             <th className='p-4 border'>Actions</th>
                         </tr>
                     </thead>

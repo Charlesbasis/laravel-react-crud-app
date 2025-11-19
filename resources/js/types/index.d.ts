@@ -67,6 +67,8 @@ export interface ProductPagination {
 
 export interface FilterProps {
     search?: string;
+    sort?: string;
+    direction?: string;
 }
 
 export interface IndexProps {
@@ -79,4 +81,12 @@ export interface PaginationData {
     from: number;
     to: number;
     total: number;
+}
+
+type SortDirection = 'asc' | 'desc';
+type SortField = 'name' | 'description' | 'price' | 'created_at';
+
+export interface SortProps {
+    field: SortField;
+    direction: SortDirection;
 }
