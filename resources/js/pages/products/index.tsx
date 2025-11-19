@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
+import { PriceFilter } from '@/components/ui/price-filter';
 import { SortableHeader } from '@/components/ui/sortable-header';
 import AppLayout from '@/layouts/app-layout';
 import { SortField, SortProps, type BreadcrumbItem } from '@/types';
@@ -39,36 +40,20 @@ export default function Index() {
     const previousProducts = useRef(products);
     const previousFilters = useRef(filters);
 
-    // const executeSearch = useCallback((value: string) => {
-    //     if (requestInProgress.current) return;
+    const [localMinPrice, setLocalMinPrice] = useState(initialFilters.current.min_price || '');
+    const [localMaxPrice, setLocalMaxPrice] = useState(initialFilters.current.max_price || '');
 
-    //     requestInProgress.current = true;
-        
-    //     const queryString = value ? { search: value } : {};
-
-    //     console.log('🚀 Making Inertia request with:', queryString);
-
-    //     router.get(productsIndex().url, queryString, {
-    //         preserveScroll: true,
-    //         preserveState: true,
-    //         replace: true,
-    //         onFinish: () => {
-    //             requestInProgress.current = false;
-    //         },
-    //     });
-    // }, []);
-
-    const executeSearch = useCallback((value: string) => {
+    const executeSearchFilter = useCallback((value: string) => {
         if (requestInProgress.current) return;
-
+        
         requestInProgress.current = true;
-
+        
         const queryParams: any = {
             search: value,
             sort: sortConfig.field,
             direction: sortConfig.direction
         };
-
+        
         Object.keys(queryParams).forEach((key) => {
             if (queryParams[key] === undefined) {
                 delete queryParams[key];
@@ -84,9 +69,38 @@ export default function Index() {
                 requestInProgress.current = false;
             },
         });
-    }, [sortConfig]);
+    }, [sortConfig, requestInProgress, localMinPrice, localMaxPrice]);
+
+    const executePriceFilter = useCallback((min_price: string, max_price: string) => {
+        if (requestInProgress.current) return;
+
+        requestInProgress.current = true;
+
+        const queryParams: any = {
+            min_price: min_price,
+            max_price: max_price,
+            sort: sortConfig.field,
+            direction: sortConfig.direction
+        };
+
+        Object.keys(queryParams).forEach((key) => {
+            if (queryParams[key] === undefined) {
+                delete queryParams[key];
+            }
+        });
+        
+        console.log('Price Filtering Request', queryParams)
+        router.get(productsIndex().url, queryParams, {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+            onFinish: () => {
+                requestInProgress.current = false;
+            },
+        });
+    }, [sortConfig, requestInProgress, localSearch]);
     
-    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         console.log('⌨️ Input changed:', value);
         setLocalSearch(value);
@@ -94,11 +108,19 @@ export default function Index() {
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
-
+        
         searchTimeoutRef.current = setTimeout(() => {
-            executeSearch(value);
+            executeSearchFilter(value);
         }, 500);
-    }, [executeSearch]);
+    }, [executeSearchFilter]);
+
+    const handlePriceChange = useCallback((min_price: string, max_price: string) => {
+        
+        console.log('🔢 Price changed:', min_price, max_price);
+        setLocalMinPrice(min_price);
+        setLocalMaxPrice(max_price);
+        executePriceFilter(min_price, max_price);
+    }, [executePriceFilter]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
@@ -108,9 +130,9 @@ export default function Index() {
             if (searchTimeoutRef.current) {
                 clearTimeout(searchTimeoutRef.current);
             }
-            executeSearch(localSearch);
+            executeFilter(localSearch, localMinPrice, localMaxPrice);
         }
-    }, [localSearch, executeSearch]);
+    }, [localSearch, localMinPrice, localMaxPrice, executeSearchFilter, executePriceFilter]);
 
     useEffect(() => {
         const productsChanged =
@@ -159,7 +181,9 @@ export default function Index() {
         const queryParams: any = {
             search: localSearch,
             sort: newSortConfig.field,
-            direction: newSortConfig.direction
+            direction: newSortConfig.direction,
+            min_price: localMinPrice,
+            max_price: localMaxPrice,
         };
 
         Object.keys(queryParams).forEach((key) => {
@@ -176,7 +200,7 @@ export default function Index() {
                 requestInProgress.current = false;
             },
         });
-    }, [sortConfig, localSearch, requestInProgress]);
+    }, [sortConfig, localSearch, requestInProgress, localMinPrice, localMaxPrice]);
     
     useEffect(() => {
         const productsChanged =
@@ -191,13 +215,29 @@ export default function Index() {
                 page: products.current_page,
                 search: filters.search,
                 sort: filters.sort,
-                direction: filters.direction
+                direction: filters.direction,
+                min_price: filters.min_price,
+                max_price: filters.max_price,
             });
 
             previousProducts.current = products;
             previousFilters.current = filters;
         }
     }, [products, filters]);
+
+    const handleResetFilters = useCallback(() => {
+        setLocalSearch('');
+        setLocalMinPrice('');
+        setLocalMaxPrice('');
+        executeSearchFilter('');
+        executePriceFilter('', '');
+
+        router.get(productsIndex().url, {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+        });
+    }, []);
     
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -209,24 +249,25 @@ export default function Index() {
                     className='mb-4 flex w-full items-center justify-between gap-4'
                 >
                     <Input
-                        onChange={handleChange}
-                        onKeyDown={handleKeyDown} // ADD THIS
+                        onChange={handleSearchChange}
+                        onKeyDown={handleKeyDown}
                         value={localSearch}
                         type='text'
                         placeholder='Search Product ...'
                         name='search'
                         className='w-1/2'
                     />
-                    <Link
-                        href={productsIndex().url}
-                        preserveScroll
-                        preserveState
-                        replace
-                        as="button"
+                    <PriceFilter
+                        min_price={localMinPrice}
+                        max_price={localMaxPrice}
+                        onPriceChange={handlePriceChange}
+                    />
+                    <Button
                         className='cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center'
+                        onClick={handleResetFilters}
                     >
-                        <X size={20} />
-                    </Link>
+                        <X size={20} /> Reset Filters
+                    </Button>
                     <div className='ml-auto'>
                         <Link
                             as="button"
@@ -242,10 +283,6 @@ export default function Index() {
                     <thead>
                         <tr className='bg-gray-700 text-white'>
                             <th className='p-4 border'>#</th>
-                            {/* <th className='p-4 border'>Name</th>
-                            <th className='p-4 border'>Description</th>
-                            <th className='p-4 border'>Price</th>                            
-                            <th className='p-4 border'>Created Date</th> */}
                             <SortableHeader field="name" currentSort={sortConfig} onSort={handleSort} className='p-4 border'>Name</SortableHeader>
                             <SortableHeader field="description" currentSort={sortConfig} onSort={handleSort} className='p-4 border'>Description</SortableHeader>
                             <SortableHeader field="price" currentSort={sortConfig} onSort={handleSort} className='p-4 border'>Price</SortableHeader>

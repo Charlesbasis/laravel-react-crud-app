@@ -69,6 +69,8 @@ export interface FilterProps {
     search?: string;
     sort?: string;
     direction?: string;
+    min_price?: string;
+    max_price?: string;
 }
 
 export interface IndexProps {
@@ -89,4 +91,11 @@ type SortField = 'name' | 'description' | 'price' | 'created_at';
 export interface SortProps {
     field: SortField;
     direction: SortDirection;
+}
+
+export interface PriceFilterProps {
+    min_price?: string;
+    max_price?: string;
+    onPriceChange: (min_price: string, max_price: string) => void;
+    className?: string;
 }

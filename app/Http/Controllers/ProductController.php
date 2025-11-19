@@ -51,6 +51,14 @@ class ProductController extends Controller
             
             $products->orderBy($sort, $direction);
         }
+
+        if ($request->filled('min_price')) {
+            $products->where('price', '>=', $request->min_price);
+        }
+
+        if ($request->filled('max_price')) {
+            $products->where('price', '<=', $request->max_price);
+        }
         
         $products = $products->latest()->paginate(2)->withQueryString();
         
@@ -70,7 +78,7 @@ class ProductController extends Controller
 
         return Inertia::render('products/index', [
             'products' => $products,
-            'filters' => $request->only(['search', 'sort', 'direction']),
+            'filters' => $request->only(['search', 'sort', 'direction', 'min_price', 'max_price']),
         ]);
     }
 
