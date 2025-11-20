@@ -6,6 +6,7 @@ import {
     show as productsShow
 } from '@/actions/App/Http/Controllers/ProductController';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import { PriceFilter } from '@/components/ui/price-filter';
@@ -13,7 +14,7 @@ import { SortableHeader } from '@/components/ui/sortable-header';
 import AppLayout from '@/layouts/app-layout';
 import { SortField, SortProps, type BreadcrumbItem } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Eye, Pencil, Trash, X } from 'lucide-react';
+import { Eye, MoreHorizontal, Pencil, Trash, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -45,21 +46,21 @@ export default function Index() {
 
     const executeSearchFilter = useCallback((value: string) => {
         if (requestInProgress.current) return;
-        
+
         requestInProgress.current = true;
-        
+
         const queryParams: any = {
             search: value,
             sort: sortConfig.field,
             direction: sortConfig.direction
         };
-        
+
         Object.keys(queryParams).forEach((key) => {
             if (queryParams[key] === undefined) {
                 delete queryParams[key];
             }
         });
-        
+
         console.log('Sorting Request', queryParams)
         router.get(productsIndex().url, queryParams, {
             preserveScroll: true,
@@ -88,7 +89,7 @@ export default function Index() {
                 delete queryParams[key];
             }
         });
-        
+
         console.log('Price Filtering Request', queryParams)
         router.get(productsIndex().url, queryParams, {
             preserveScroll: true,
@@ -99,7 +100,7 @@ export default function Index() {
             },
         });
     }, [sortConfig, requestInProgress, localSearch]);
-    
+
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         console.log('⌨️ Input changed:', value);
@@ -108,14 +109,14 @@ export default function Index() {
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
-        
+
         searchTimeoutRef.current = setTimeout(() => {
             executeSearchFilter(value);
         }, 500);
     }, [executeSearchFilter]);
 
     const handlePriceChange = useCallback((min_price: string, max_price: string) => {
-        
+
         console.log('🔢 Price changed:', min_price, max_price);
         setLocalMinPrice(min_price);
         setLocalMaxPrice(max_price);
@@ -126,7 +127,7 @@ export default function Index() {
         if (e.key === 'Enter') {
             e.preventDefault();
             console.log('⏹️ Prevented form submission on Enter');
-            
+
             if (searchTimeoutRef.current) {
                 clearTimeout(searchTimeoutRef.current);
             }
@@ -173,11 +174,11 @@ export default function Index() {
             field,
             direction: newDirection
         };
-        
+
         setSortConfig(newSortConfig);
 
         requestInProgress.current = true;
-        
+
         const queryParams: any = {
             search: localSearch,
             sort: newSortConfig.field,
@@ -201,7 +202,7 @@ export default function Index() {
             },
         });
     }, [sortConfig, localSearch, requestInProgress, localMinPrice, localMaxPrice]);
-    
+
     useEffect(() => {
         const productsChanged =
             previousProducts.current.data.length !== products.data.length ||
@@ -238,13 +239,13 @@ export default function Index() {
             replace: true,
         });
     }, []);
-    
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Products Management" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-lg-xl p-4">
                 {/* ADD FORM PREVENTION WRAPPER */}
-                <div 
+                <div
                     onSubmit={(e) => e.preventDefault()}
                     className='mb-4 flex w-full items-center justify-between gap-4'
                 >
@@ -266,7 +267,7 @@ export default function Index() {
                         className='cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center'
                         onClick={handleResetFilters}
                     >
-                        <X size={20} /> Reset Filters
+                        <X size={20} className='mr-2' /> Reset Filters
                     </Button>
                     <div className='ml-auto'>
                         <Link
@@ -303,34 +304,48 @@ export default function Index() {
                                     <img src={product.image} alt={product.name} className='w-20 h-20 object-cover' />
                                 </td>
                                 <td className='border px-4 py-2 text-center'>{product.created_at}</td>
-                                <td className='border px-4 py-2 text-center'>
-                                    <Link
-                                        as="button"
-                                        className="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 rounded-lg"
-                                        href={productsShow(product.id).url}
-                                    >
-                                        <Eye size={20} />
-                                    </Link>
-                                    <Link
-                                        as="button"
-                                        className="ms-2 cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 rounded-lg"
-                                        href={productsEdit(product.id).url}
-                                    >
-                                        <Pencil size={20} />
-                                    </Link>
-                                    <Button
-                                        className="ms-2 cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold p-2 rounded-lg"
-                                        onClick={() => {
-                                            if (confirm('Are you sure you want to delete this product?')) {
-                                                router.delete(productsDestroy(product.id).url, { // FIXED: Added comma
-                                                    preserveScroll: true,
-                                                });
-                                            }
-                                        }}
-                                    >
-                                        <Trash size={20} />
-                                    </Button>
-                                </td>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>                                        
+                                        <MoreHorizontal size={20} className='mx-9 my-9 cursor-pointer' />
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-56">
+                                        <DropdownMenuItem asChild>
+                                            <Link
+                                                as="button"
+                                                className="cursor-pointer p-2"
+                                                href={productsShow(product.id).url}
+                                            >
+                                                <Eye size={20} className='mr-2' />
+                                                View Details
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link
+                                                as="button"
+                                                className="cursor-pointer p-2"
+                                                href={productsEdit(product.id).url}
+                                            >
+                                                <Pencil size={20} className='mr-2' />
+                                                Edit Product
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Button
+                                                className="bg-transparent hover:bg-red-500! hover:text-white! text-red-500 cursor-pointer p-2"
+                                                onClick={() => {
+                                                    if (confirm('Are you sure you want to delete this product?')) {
+                                                        router.delete(productsDestroy(product.id).url, {
+                                                            preserveScroll: true,
+                                                        });
+                                                    }
+                                                }}
+                                            >
+                                                <Trash size={20} className='mr-2' />
+                                                Delete Product
+                                            </Button>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>                                
                             </tr>
                         ))}
                     </tbody>
