@@ -61,7 +61,7 @@ export default function Index() {
             }
         });
 
-        console.log('Sorting Request', queryParams)
+        // console.log('Sorting Request', queryParams)
         router.get(productsIndex().url, queryParams, {
             preserveScroll: true,
             preserveState: true,
@@ -90,7 +90,7 @@ export default function Index() {
             }
         });
 
-        console.log('Price Filtering Request', queryParams)
+        // console.log('Price Filtering Request', queryParams)
         router.get(productsIndex().url, queryParams, {
             preserveScroll: true,
             preserveState: true,
@@ -103,7 +103,7 @@ export default function Index() {
 
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        console.log('⌨️ Input changed:', value);
+        // console.log('⌨️ Input changed:', value);
         setLocalSearch(value);
 
         if (searchTimeoutRef.current) {
@@ -117,7 +117,7 @@ export default function Index() {
 
     const handlePriceChange = useCallback((min_price: string, max_price: string) => {
 
-        console.log('🔢 Price changed:', min_price, max_price);
+        // console.log('🔢 Price changed:', min_price, max_price);
         setLocalMinPrice(min_price);
         setLocalMaxPrice(max_price);
         executePriceFilter(min_price, max_price);
@@ -126,7 +126,7 @@ export default function Index() {
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            console.log('⏹️ Prevented form submission on Enter');
+            // console.log('⏹️ Prevented form submission on Enter');
 
             if (searchTimeoutRef.current) {
                 clearTimeout(searchTimeoutRef.current);
@@ -143,11 +143,11 @@ export default function Index() {
         const filtersChanged = previousFilters.current.search !== filters.search;
 
         if (productsChanged || filtersChanged) {
-            console.log('📦 Products updated:', {
-                items: products.data.length,
-                page: products.current_page,
-                search: filters.search
-            });
+            // console.log('📦 Products updated:', {
+            //     items: products.data.length,
+            //     page: products.current_page,
+            //     search: filters.search
+            // });
 
             previousProducts.current = products;
             previousFilters.current = filters;
@@ -192,7 +192,7 @@ export default function Index() {
                 delete queryParams[key];
             }
         });
-        console.log('Sorting Request', queryParams)
+        // console.log('Sorting Request', queryParams)
         router.get(productsIndex().url, queryParams, {
             preserveScroll: true,
             preserveState: true,
@@ -211,15 +211,15 @@ export default function Index() {
         const filtersChanged = previousFilters.current.search !== filters.search;
 
         if (productsChanged || filtersChanged) {
-            console.log('📦 Products updated:', {
-                items: products.data.length,
-                page: products.current_page,
-                search: filters.search,
-                sort: filters.sort,
-                direction: filters.direction,
-                min_price: filters.min_price,
-                max_price: filters.max_price,
-            });
+            // console.log('📦 Products updated:', {
+            //     items: products.data.length,
+            //     page: products.current_page,
+            //     search: filters.search,
+            //     sort: filters.sort,
+            //     direction: filters.direction,
+            //     min_price: filters.min_price,
+            //     max_price: filters.max_price,
+            // });
 
             previousProducts.current = products;
             previousFilters.current = filters;
@@ -305,7 +305,7 @@ export default function Index() {
                                 </td>
                                 <td className='border px-4 py-2 text-center'>{product.created_at}</td>
                                 <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>                                        
+                                    <DropdownMenuTrigger asChild>
                                         <MoreHorizontal size={20} className='mx-9 my-9 cursor-pointer' />
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="w-56">
@@ -345,7 +345,7 @@ export default function Index() {
                                             </Button>
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
-                                </DropdownMenu>                                
+                                </DropdownMenu>
                             </tr>
                         ))}
                     </tbody>

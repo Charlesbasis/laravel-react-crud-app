@@ -10,7 +10,7 @@ export const PriceFilter = ({ min_price, max_price, onPriceChange, className }: 
 
     const handleMinPriceChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        console.log('🔢 Min Price changed:', value);
+        // console.log('🔢 Min Price changed:', value);
 
         if (minPriceTimeoutRef.current) {
             clearTimeout(minPriceTimeoutRef.current);
@@ -23,7 +23,7 @@ export const PriceFilter = ({ min_price, max_price, onPriceChange, className }: 
 
     const handleMaxPriceChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        console.log('🔢 Max Price changed:', value);
+        // console.log('🔢 Max Price changed:', value);
 
         if (maxPriceTimeoutRef.current) {
             clearTimeout(maxPriceTimeoutRef.current);
@@ -37,7 +37,7 @@ export const PriceFilter = ({ min_price, max_price, onPriceChange, className }: 
     const handleKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            console.log('⏹️ Prevented form submission on Enter');
+            // console.log('⏹️ Prevented form submission on Enter');
 
             if (minPriceTimeoutRef.current) {
                 clearTimeout(minPriceTimeoutRef.current);

@@ -7,6 +7,7 @@ use App\Models\Product;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -142,6 +143,7 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         // dd("edit");
+        // Log::debug('Processing edit with data:', $product->toArray());
         return Inertia::render('products/product-form', [
             'product' => $product,
             'isEdit' => true,
@@ -154,18 +156,22 @@ class ProductController extends Controller
     public function update(ProductFormRequest $request, Product $product)
     {
         // dd("update");
+        // Log::debug('Processing update with data:', $request->all());
         if ($product){
             $product->name = $request->name;
             $product->description = $request->description;
             $product->price = $request->price;
 
             if ($request->file('image')) {
+                
+                if ($product->image) {
+                    Storage::disk('public')->delete($product->image);
+                }
+                
                 $image = $request->file('image');
                 $imageOriginalName = $image->getClientOriginalName();
-                $image = $image->store('products', 'public');
-
-                $product->image = $image;
-                $product->image_original_name = $imageOriginalName;
+                $imagePath = $image->store('products', 'public');
+                $product->image = $imagePath;
             }
 
             $product->save();

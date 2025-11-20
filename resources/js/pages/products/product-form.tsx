@@ -11,7 +11,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 
 export default function ProductForm({ ...props }) {
-    
+
     const { product, isView, isEdit } = props;
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -21,26 +21,52 @@ export default function ProductForm({ ...props }) {
         },
     ];
 
-    const { data, setData, post, errors, processing, reset } = useForm({
+    const { data, setData, post, errors, processing, reset, transform } = useForm({
         name: product?.name || '',
         description: product?.description || '',
         image: null as File | null,
         price: product?.price || '',
         _method: isEdit ? 'PUT' : 'POST',
     });
-    
+
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (isEdit) {
-            post(productsUpdate(product.id).url, {
-                onSuccess: () => reset(),
-            });
-        } else {
-            post(productsStore().url, {
-                onSuccess: () => reset(),
-            });
-        }
+        // console.log('📦 Submitting form with data:', data);
+        
+        const url = isEdit ? productsUpdate(product.id).url : productsStore().url;
+
+        transform((data) => {
+            if (isEdit && data.image === null) {
+                const { image, ...rest } = data;
+                return rest;
+            }
+            // console.log('📦 Transformed data:', data);
+            return data;
+        });
+
+        post(url, {
+            forceFormData: true,
+            onSuccess: () => reset(),
+            onError: (error) => console.error('📦 Error submitting form:', error),
+        });
+
+        // if (isEdit) {
+            
+        //     const submitData = isEdit && data.image === null
+        //         ? (({ image, ...rest }: any) => ({ image: null, ...rest }))(data)
+        //         : data;
+
+        //     const url = isEdit ? productsUpdate(product.id).url : productsStore().url;
+            
+        //     (post as any)(url, submitData, {
+        //         onSuccess: () => reset(),
+        //     });
+        // } else {
+        //     post(productsStore().url, {
+        //         onSuccess: () => reset(),
+        //     });
+        // }
     };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,12 +74,12 @@ export default function ProductForm({ ...props }) {
             setData('image', e.target.files[0]);
         }
     };
-    
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Product Form" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                
+
                 <Card>
                     <CardHeader>
                         <CardTitle>{isView ? 'Show' : isEdit ? 'Update' : 'Create'} Product</CardTitle>
@@ -88,7 +114,7 @@ export default function ProductForm({ ...props }) {
                                     cols={80}
                                     name="description"
                                     id="description"
-                                    disabled={isView || processing}                                    
+                                    disabled={isView || processing}
                                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 />
                                 <InputError message={errors.description} />
@@ -114,7 +140,6 @@ export default function ProductForm({ ...props }) {
                                         Image
                                     </Label>
                                     <Input
-                                        
                                         onChange={handleFileUpload}
                                         type="file"
                                         name="image"
@@ -127,7 +152,7 @@ export default function ProductForm({ ...props }) {
                                 </div>
                             )}
 
-                            {isView || isEdit && (
+                            {(isView || isEdit) && (
                                 <div className="col-span-6 sm:col-span-4">
                                     <Label htmlFor="Image" className="block text-sm font-medium text-gray-700">
                                         Current Image
@@ -143,7 +168,7 @@ export default function ProductForm({ ...props }) {
                                         className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                                     >
                                         {processing && <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />}
-                                        {processing ? (isEdit ? 'Updating...' : 'Creating...') : isEdit ? 'Update Product' : 'Create Product'} 
+                                        {processing ? (isEdit ? 'Updating...' : 'Creating...') : isEdit ? 'Update Product' : 'Create Product'}
                                     </Button>
                                 </div>
                             )}
