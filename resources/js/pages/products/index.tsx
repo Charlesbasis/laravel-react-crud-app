@@ -6,13 +6,13 @@ import {
     show as productsShow
 } from '@/actions/App/Http/Controllers/ProductController';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import { PriceFilter } from '@/components/ui/price-filter';
 import { SortableHeader } from '@/components/ui/sortable-header';
 import AppLayout from '@/layouts/app-layout';
-import { SortField, SortProps, type BreadcrumbItem } from '@/types';
+import { BreadcrumbItem, IndexProps, SortField, SortProps } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Eye, MoreHorizontal, Pencil, Trash, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -25,230 +25,116 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index() {
-    const { props } = usePage<PageProps>();
-    const { products, filters } = props;
+    const { props } = usePage<any>(); // Cast to any momentarily or use PageProps interface defined above
+    const { products, filters } = props as IndexProps;
 
-    const initialFilters = useRef(props.filters);
-    const [localSearch, setLocalSearch] = useState(initialFilters.current.search || '');
-    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const requestInProgress = useRef(false);
+    const [localSearch, setLocalSearch] = useState(filters.search || '');
+    const [localMinPrice, setLocalMinPrice] = useState(filters.min_price || '');
+    const [localMaxPrice, setLocalMaxPrice] = useState(filters.max_price || '');
 
     const [sortConfig, setSortConfig] = useState<SortProps>({
-        field: 'created_at',
-        direction: 'asc'
+        field: filters.sort || 'created_at',
+        direction: filters.direction || 'desc' 
     });
 
-    const previousProducts = useRef(products);
-    const previousFilters = useRef(filters);
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const [localMinPrice, setLocalMinPrice] = useState(initialFilters.current.min_price || '');
-    const [localMaxPrice, setLocalMaxPrice] = useState(initialFilters.current.max_price || '');
-
-    const executeSearchFilter = useCallback((value: string) => {
-        if (requestInProgress.current) return;
-
-        requestInProgress.current = true;
-
-        const queryParams: any = {
-            search: value,
+    const fetchData = useCallback((
+        overrideParams: Partial<{
+            search: string;
+            min_price: string;
+            max_price: string;
+            sort: SortField;
+            direction: 'asc' | 'desc';
+        }> = {}
+    ) => {
+        const params = {
+            search: localSearch,
+            min_price: localMinPrice,
+            max_price: localMaxPrice,
             sort: sortConfig.field,
-            direction: sortConfig.direction
+            direction: sortConfig.direction,
+            ...overrideParams, 
         };
 
-        Object.keys(queryParams).forEach((key) => {
-            if (queryParams[key] === undefined) {
-                delete queryParams[key];
+        const queryParams: Record<string, any> = {};
+        Object.keys(params).forEach((key) => {
+            // @ts-ignore
+            if (params[key] !== '' && params[key] !== undefined && params[key] !== null) {
+                // @ts-ignore
+                queryParams[key] = params[key];
             }
         });
 
-        // console.log('Sorting Request', queryParams)
         router.get(productsIndex().url, queryParams, {
             preserveScroll: true,
             preserveState: true,
             replace: true,
-            onFinish: () => {
-                requestInProgress.current = false;
-            },
         });
-    }, [sortConfig, requestInProgress, localMinPrice, localMaxPrice]);
+    }, [localSearch, localMinPrice, localMaxPrice, sortConfig]);
 
-    const executePriceFilter = useCallback((min_price: string, max_price: string) => {
-        if (requestInProgress.current) return;
-
-        requestInProgress.current = true;
-
-        const queryParams: any = {
-            min_price: min_price,
-            max_price: max_price,
-            sort: sortConfig.field,
-            direction: sortConfig.direction
-        };
-
-        Object.keys(queryParams).forEach((key) => {
-            if (queryParams[key] === undefined) {
-                delete queryParams[key];
-            }
-        });
-
-        // console.log('Price Filtering Request', queryParams)
-        router.get(productsIndex().url, queryParams, {
-            preserveScroll: true,
-            preserveState: true,
-            replace: true,
-            onFinish: () => {
-                requestInProgress.current = false;
-            },
-        });
-    }, [sortConfig, requestInProgress, localSearch]);
-
-    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        // console.log('⌨️ Input changed:', value);
         setLocalSearch(value);
 
-        if (searchTimeoutRef.current) {
-            clearTimeout(searchTimeoutRef.current);
-        }
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
 
         searchTimeoutRef.current = setTimeout(() => {
-            executeSearchFilter(value);
+            fetchData({ search: value });
         }, 500);
-    }, [executeSearchFilter]);
+    };
 
-    const handlePriceChange = useCallback((min_price: string, max_price: string) => {
+    const handlePriceChange = (min: string, max: string) => {
+        setLocalMinPrice(min);
+        setLocalMaxPrice(max);
+        fetchData({ min_price: min, max_price: max });
+    };
 
-        // console.log('🔢 Price changed:', min_price, max_price);
-        setLocalMinPrice(min_price);
-        setLocalMaxPrice(max_price);
-        executePriceFilter(min_price, max_price);
-    }, [executePriceFilter]);
-
-    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            // console.log('⏹️ Prevented form submission on Enter');
-
-            if (searchTimeoutRef.current) {
-                clearTimeout(searchTimeoutRef.current);
-            }
-            executeFilter(localSearch, localMinPrice, localMaxPrice);
-        }
-    }, [localSearch, localMinPrice, localMaxPrice, executeSearchFilter, executePriceFilter]);
-
-    useEffect(() => {
-        const productsChanged =
-            previousProducts.current.data.length !== products.data.length ||
-            previousProducts.current.current_page !== products.current_page;
-
-        const filtersChanged = previousFilters.current.search !== filters.search;
-
-        if (productsChanged || filtersChanged) {
-            // console.log('📦 Products updated:', {
-            //     items: products.data.length,
-            //     page: products.current_page,
-            //     search: filters.search
-            // });
-
-            previousProducts.current = products;
-            previousFilters.current = filters;
-        }
-    }, [products, filters]);
-
-    useEffect(() => {
-        return () => {
-            if (searchTimeoutRef.current) {
-                clearTimeout(searchTimeoutRef.current);
-            }
-        };
-    }, []);
-
-    const handleSort = useCallback((field: SortField) => {
-        if (requestInProgress.current) return;
-
+    const handleSort = (field: SortField) => {
         let newDirection: SortProps['direction'] = 'asc';
         if (sortConfig.field === field) {
             newDirection = sortConfig.direction === 'asc' ? 'desc' : 'asc';
         }
 
-        const newSortConfig: SortProps = {
-            field,
-            direction: newDirection
-        };
+        const newSort = { field, direction: newDirection };
+        setSortConfig(newSort);
 
-        setSortConfig(newSortConfig);
+        fetchData({ sort: field, direction: newDirection });
+    };
 
-        requestInProgress.current = true;
-
-        const queryParams: any = {
-            search: localSearch,
-            sort: newSortConfig.field,
-            direction: newSortConfig.direction,
-            min_price: localMinPrice,
-            max_price: localMaxPrice,
-        };
-
-        Object.keys(queryParams).forEach((key) => {
-            if (queryParams[key] === undefined) {
-                delete queryParams[key];
-            }
-        });
-        // console.log('Sorting Request', queryParams)
-        router.get(productsIndex().url, queryParams, {
-            preserveScroll: true,
-            preserveState: true,
-            replace: true,
-            onFinish: () => {
-                requestInProgress.current = false;
-            },
-        });
-    }, [sortConfig, localSearch, requestInProgress, localMinPrice, localMaxPrice]);
-
-    useEffect(() => {
-        const productsChanged =
-            previousProducts.current.data.length !== products.data.length ||
-            previousProducts.current.current_page !== products.current_page;
-
-        const filtersChanged = previousFilters.current.search !== filters.search;
-
-        if (productsChanged || filtersChanged) {
-            // console.log('📦 Products updated:', {
-            //     items: products.data.length,
-            //     page: products.current_page,
-            //     search: filters.search,
-            //     sort: filters.sort,
-            //     direction: filters.direction,
-            //     min_price: filters.min_price,
-            //     max_price: filters.max_price,
-            // });
-
-            previousProducts.current = products;
-            previousFilters.current = filters;
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+            fetchData();
         }
-    }, [products, filters]);
+    };
 
-    const handleResetFilters = useCallback(() => {
+    const handleResetFilters = () => {
         setLocalSearch('');
         setLocalMinPrice('');
         setLocalMaxPrice('');
-        executeSearchFilter('');
-        executePriceFilter('', '');
+        setSortConfig({ field: 'created_at', direction: 'desc' });
 
-        router.get(productsIndex().url, {
+        router.get(productsIndex().url, {}, {
             preserveScroll: true,
             preserveState: true,
-            replace: true,
         });
+    };
+
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+        };
     }, []);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Products Management" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-lg-xl p-4">
-                {/* ADD FORM PREVENTION WRAPPER */}
-                <div
-                    onSubmit={(e) => e.preventDefault()}
-                    className='mb-4 flex w-full items-center justify-between gap-4'
-                >
+
+                {/* Filters Toolbar */}
+                <div className='mb-4 flex w-full flex-wrap items-center gap-4'>
                     <Input
                         onChange={handleSearchChange}
                         onKeyDown={handleKeyDown}
@@ -256,23 +142,27 @@ export default function Index() {
                         type='text'
                         placeholder='Search Product ...'
                         name='search'
-                        className='w-1/2'
+                        className='w-full md:w-1/3' 
                     />
                     <PriceFilter
                         min_price={localMinPrice}
                         max_price={localMaxPrice}
                         onPriceChange={handlePriceChange}
                     />
-                    <Button
-                        className='cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center'
-                        onClick={handleResetFilters}
-                    >
-                        <X size={20} className='mr-2' /> Reset Filters
-                    </Button>
+
+                    {(localSearch || localMinPrice || localMaxPrice) && (
+                        <Button
+                            variant="destructive"
+                            className='cursor-pointer'
+                            onClick={handleResetFilters}
+                        >
+                            <X size={16} className='mr-2' /> Reset
+                        </Button>
+                    )}
+
                     <div className='ml-auto'>
                         <Link
-                            as="button"
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg inline-flex items-center transition-colors"
                             href={productsCreate().url}
                         >
                             Add Product
@@ -280,76 +170,84 @@ export default function Index() {
                     </div>
                 </div>
 
-                <table className='w-full table-auto'>
-                    <thead>
-                        <tr className='bg-gray-700 text-white'>
-                            <th className='p-4 border'>#</th>
-                            <SortableHeader field="name" currentSort={sortConfig} onSort={handleSort} className='p-4 border'>Name</SortableHeader>
-                            <SortableHeader field="description" currentSort={sortConfig} onSort={handleSort} className='p-4 border'>Description</SortableHeader>
-                            <SortableHeader field="price" currentSort={sortConfig} onSort={handleSort} className='p-4 border'>Price</SortableHeader>
-                            <th className='p-4 border'>Image</th>
-                            <SortableHeader field="created_at" currentSort={sortConfig} onSort={handleSort} className='p-4 border'>Created Date</SortableHeader>
-                            <th className='p-4 border'>Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {products.data?.map((product: any, index: number) => (
-                            <tr key={index}>
-                                <td className='border px-4 py-2 text-center'>{index + 1}</td>
-                                <td className='border px-4 py-2 text-center'>{product.name}</td>
-                                <td className='border px-4 py-2 text-center'>{product.description}</td>
-                                <td className='border px-4 py-2 text-center'>{product.price}</td>
-                                <td className='border px-4 py-2 text-center'>
-                                    <img src={product.image} alt={product.name} className='w-20 h-20 object-cover' />
-                                </td>
-                                <td className='border px-4 py-2 text-center'>{product.created_at}</td>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <MoreHorizontal size={20} className='mx-9 my-9 cursor-pointer' />
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56">
-                                        <DropdownMenuItem asChild>
-                                            <Link
-                                                as="button"
-                                                className="cursor-pointer p-2"
-                                                href={productsShow(product.id).url}
-                                            >
-                                                <Eye size={20} className='mr-2' />
-                                                View Details
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Link
-                                                as="button"
-                                                className="cursor-pointer p-2"
-                                                href={productsEdit(product.id).url}
-                                            >
-                                                <Pencil size={20} className='mr-2' />
-                                                Edit Product
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem asChild>
-                                            <Button
-                                                className="bg-transparent hover:bg-red-500! hover:text-white! text-red-500 cursor-pointer p-2"
-                                                onClick={() => {
-                                                    if (confirm('Are you sure you want to delete this product?')) {
-                                                        router.delete(productsDestroy(product.id).url, {
-                                                            preserveScroll: true,
-                                                        });
-                                                    }
-                                                }}
-                                            >
-                                                <Trash size={20} className='mr-2' />
-                                                Delete Product
-                                            </Button>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                {/* Table */}
+                <div className="rounded-md border">
+                    <table className='w-full table-auto'>
+                        <thead className="bg-gray-100 dark:bg-gray-800">
+                            <tr className='text-left text-sm font-medium text-gray-500 dark:text-gray-300'>
+                                <th className='p-4 border-b'>#</th>
+                                <SortableHeader field="name" currentSort={sortConfig} onSort={handleSort} className='p-4 border-b'>Name</SortableHeader>
+                                <SortableHeader field="description" currentSort={sortConfig} onSort={handleSort} className='p-4 border-b'>Description</SortableHeader>
+                                <SortableHeader field="price" currentSort={sortConfig} onSort={handleSort} className='p-4 border-b'>Price</SortableHeader>
+                                <th className='p-4 border-b'>Image</th>
+                                <SortableHeader field="created_at" currentSort={sortConfig} onSort={handleSort} className='p-4 border-b'>Created Date</SortableHeader>
+                                <th className='p-4 border-b text-right'>Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+
+                        <tbody>
+                            {products.data.length === 0 ? (
+                                <tr>
+                                    <td colSpan={7} className="p-8 text-center text-gray-500">
+                                        No products found.
+                                    </td>
+                                </tr>
+                            ) : (
+                                products?.data?.map((product, index) => (
+                                    <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                                        <td className='border-b px-4 py-2'>{index + 1}</td>
+                                        <td className='border-b px-4 py-2 font-medium'>{product.name}</td>
+                                        <td className='border-b px-4 py-2 text-gray-500 truncate max-w-xs'>{product.description}</td>
+                                        <td className='border-b px-4 py-2'>${product.price}</td>
+                                        <td className='border-b px-4 py-2'>
+                                            {product?.image ? (
+                                                <img src={product.image} alt={product.name} className='w-10 h-10 rounded object-cover' />
+                                            ) : (
+                                                <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xs">No Img</div>
+                                            )}
+                                        </td>
+                                        <td className='border-b px-4 py-2 text-sm'>{product.created_at}</td>
+
+                                        <td className='border-b px-4 py-2 text-right'>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                        <span className="sr-only">Open menu</span>
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-48">
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={productsShow(product.id).url} className="w-full flex items-center cursor-pointer">
+                                                            <Eye className="mr-2 h-4 w-4" /> View Details
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={productsEdit(product.id).url} className="w-full flex items-center cursor-pointer">
+                                                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        className="text-red-600 focus:text-red-600 cursor-pointer"
+                                                        onClick={() => {
+                                                            if (confirm('Are you sure you want to delete this product?')) {
+                                                                router.delete(productsDestroy(product.id).url, {
+                                                                    preserveScroll: true,
+                                                                });
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Trash className="mr-2 h-4 w-4" /> Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
                 <Pagination products={products} />
             </div>
         </AppLayout>

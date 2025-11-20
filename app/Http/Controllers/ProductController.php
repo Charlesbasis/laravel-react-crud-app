@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductFormRequest;
 use App\Models\Product;
+use App\Models\Tag;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -116,6 +117,10 @@ class ProductController extends Controller
                 'price' => $request->price,
             ]);
 
+            if ($request->filled('tags')) {
+                $this->syncTags($product, $request->tags);
+            }
+
             if ($product) {
                 return redirect()->route('products.index')->with('success', 'Product created successfully.');
             }
@@ -144,6 +149,9 @@ class ProductController extends Controller
     {
         // dd("edit");
         // Log::debug('Processing edit with data:', $product->toArray());
+        
+        $product->load('tags');
+
         return Inertia::render('products/product-form', [
             'product' => $product,
             'isEdit' => true,
@@ -176,10 +184,23 @@ class ProductController extends Controller
 
             $product->save();
 
+            $this->syncTags($product, $request->input('tags', []));
             return redirect()->route('products.index')->with('success', 'Product updated successfully.');
         }
         
         return redirect()->back()->with('error', 'Failed to update product. Please try again.');
+    }
+
+    private function syncTags(Product $product, array $tags)
+    {
+        $tagIds = [];
+        foreach ($tags as $tag) {
+            $tagIds[] = Tag::firsrOrCreate([
+                'name' => trim($tag)
+            ]);
+            $tagIds[] = $tag->id;
+        }
+        $product->tags()->sync($tagIds);   
     }
 
     /**

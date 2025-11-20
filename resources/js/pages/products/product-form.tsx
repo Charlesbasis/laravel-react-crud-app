@@ -1,5 +1,6 @@
 import { create as productsCreate, store as productsStore, update as productsUpdate } from '@/actions/App/Http/Controllers/ProductController';
 import InputError from '@/components/input-error';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,11 +9,15 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Textarea } from '@headlessui/react';
 import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, X } from 'lucide-react';
+import { useCallback, useRef, useState } from 'react';
 
 export default function ProductForm({ ...props }) {
 
     const { product, isView, isEdit } = props;
+
+    const [tagInput, setTagInput] = useState('');
+    const tagInputTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -27,13 +32,18 @@ export default function ProductForm({ ...props }) {
         image: null as File | null,
         price: product?.price || '',
         _method: isEdit ? 'PUT' : 'POST',
+        tags: product?.tags ? product.tags.map((tag: any) => tag.name) : [],
     });
+
+    const removeTag = useCallback((tag: string) => {
+        setData('tags', data.tags.filter((t: string) => t !== tag));
+    }, [data.tags, setData]);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         // console.log('📦 Submitting form with data:', data);
-        
+
         const url = isEdit ? productsUpdate(product.id).url : productsStore().url;
 
         transform((data) => {
@@ -50,23 +60,6 @@ export default function ProductForm({ ...props }) {
             onSuccess: () => reset(),
             onError: (error) => console.error('📦 Error submitting form:', error),
         });
-
-        // if (isEdit) {
-            
-        //     const submitData = isEdit && data.image === null
-        //         ? (({ image, ...rest }: any) => ({ image: null, ...rest }))(data)
-        //         : data;
-
-        //     const url = isEdit ? productsUpdate(product.id).url : productsStore().url;
-            
-        //     (post as any)(url, submitData, {
-        //         onSuccess: () => reset(),
-        //     });
-        // } else {
-        //     post(productsStore().url, {
-        //         onSuccess: () => reset(),
-        //     });
-        // }
     };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +68,9 @@ export default function ProductForm({ ...props }) {
         }
     };
 
+    console.log('Type of tags:', typeof data.tags);
+    console.log('Value of tags:', data.tags);
+    
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Product Form" />
@@ -134,6 +130,48 @@ export default function ProductForm({ ...props }) {
                                 />
                                 <InputError message={errors.price} />
                             </div>
+                            <div className="col-span-6 sm:col-span-4">
+                                <Label htmlFor="tags" className="block text-sm font-medium text-gray-700">
+                                    Tags
+                                </Label>
+                                {!isView && (
+                                    <Input
+                                        value={data?.tags}
+                                        onChange={(e) => setData('tags', e.target.value)}
+                                        type="text"
+                                        name="tags"
+                                        id="tags"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                        disabled={isView || processing}
+                                    />
+                                )}
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    {data?.tags?.length > 0 ? (
+                                        data?.tags?.map((tag: string, index: number) => (
+                                            <Badge
+                                                key={index}
+                                                className="bg-blue-500 text-white"
+                                            >
+                                                {tag}
+                                                {!isView && (
+                                                    <Button
+                                                        onClick={() => removeTag(tag)}
+                                                        className="bg-transparent hover:bg-red-500! hover:text-white! text-red-500 cursor-pointer p-2"
+                                                    >
+                                                        <X size={20} className='mr-2' />
+                                                        Remove
+                                                    </Button>
+                                                )}
+                                            </Badge>
+                                        ))
+                                    ) : (
+                                        <span className="text-gray-500">No tags added yet.</span>
+                                    )
+                                    }
+                                </div>
+                                <InputError message={errors.tags} />
+                            </div>
+
                             {!isView && (
                                 <div className="col-span-6 sm:col-span-4">
                                     <Label htmlFor="Image" className="block text-sm font-medium text-gray-700">

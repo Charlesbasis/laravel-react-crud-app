@@ -34,6 +34,8 @@ class ProductFormRequest extends FormRequest
                 ? "required|image|mimes:jpg,png,jpeg,svg|max:2048"
                 : "nullable|image|mimes:jpg,png,jpeg,svg|max:2048",
             "price" => "required|numeric|min:0",
+            "tags" => "nullable|array",
+            "tags.*" => "string|distinct|max:50",
         ];
     }
 
