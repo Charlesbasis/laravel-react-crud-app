@@ -20,13 +20,7 @@ class ProductFormRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
-    {        
-        // dd([
-        //     'content-type' => $this->header('content-type'),
-        //     'image_input' => $this->input('image'),
-        //     'image_file' => $this->file('image'),
-        // ]);
-        
+    {                
         return [
             "name" => "required|string|max:255",
             "description" => "required|string|max:1000",
@@ -34,8 +28,8 @@ class ProductFormRequest extends FormRequest
                 ? "required|image|mimes:jpg,png,jpeg,svg|max:2048"
                 : "nullable|image|mimes:jpg,png,jpeg,svg|max:2048",
             "price" => "required|numeric|min:0",
-            "tags" => "nullable|string",
-            "tags.*" => "string|distinct|max:50",
+            "tag" => "nullable|array",
+            "tag.*" => "string|distinct|max:50",
         ];
     }
 

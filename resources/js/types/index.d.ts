@@ -55,7 +55,8 @@ export interface Product {
     image: string;
     price: number;
     created_at: string;
-    tag: string | string[];
+    tag: string[];
+    tagInput: string;
 }
 
 export interface ProductPagination {

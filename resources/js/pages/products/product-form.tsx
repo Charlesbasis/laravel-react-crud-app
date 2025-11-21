@@ -10,7 +10,6 @@ import { type BreadcrumbItem } from '@/types';
 import { Textarea } from '@headlessui/react';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle, X } from 'lucide-react';
-import { useCallback } from 'react';
 
 export default function ProductForm({ ...props }) {
 
@@ -23,19 +22,25 @@ export default function ProductForm({ ...props }) {
         },
     ];
 
+    // console.log('📦 Product:', product);
     const { data, setData, post, errors, processing, reset, transform } = useForm({
         name: product?.name || '',
         description: product?.description || '',
         image: null as File | null,
         price: product?.price || '',
         _method: isEdit ? 'PUT' : 'POST',
-        tag: Array.isArray(product?.tag) ? product?.tag.map((tag: any) => tag.name) : [],
-        // tags: product?.tags ? product?.tags?.map((tag: any) => tag.name) : [],
+        tag: product?.tag
+            ? product.tag.split(',').map((t: string) => t.trim()).filter((t: string) => t !== '')
+            : [],
+        tagInput: '',
     });
 
-    const removeTag = useCallback((tag: string) => {
-        setData('tag', data.tag.filter((t: string) => t !== tag));
-    }, [data.tag, setData]);
+    const removeTag = (tagToRemove: any) => {
+        setData({
+            ...data,
+            tag: data.tag.filter((tag: string) => tag !== tagToRemove),
+        });
+    };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -67,18 +72,25 @@ export default function ProductForm({ ...props }) {
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' || e.key === ',') {
+        if (e.key === 'Enter') {
             e.preventDefault();
-            const newTag = data.tag.trim();
-            if (newTag && !data.tag.includes(newTag)) {
-                setData('tag', [...data.tag, newTag]);
-            }
-            setData('tag', data.tag.filter((tag: string) => tag !== newTag));
         }
-    };
 
-    // console.log('Type of tags:', typeof data.tags);
-    // console.log('Value of tags:', data.tags);
+        if (e.key === 'Enter' && data.tagInput) {
+            const newTag = data.tagInput.trim();
+
+            if (newTag && !data.tag.includes(newTag)) {
+                setData({
+                    ...data,
+                    tag: [...data.tag, newTag],
+                    tagInput: ""
+                });
+            }
+        }
+    };   
+
+    // console.log('Type of tag:', typeof data.tag);
+    // console.log('Value of tag:', data.tag);
     
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -140,19 +152,20 @@ export default function ProductForm({ ...props }) {
                                 <InputError message={errors.price} />
                             </div>
                             <div className="col-span-6 sm:col-span-4">
-                                <Label htmlFor="tags" className="block text-sm font-medium text-gray-700">
+                                <Label htmlFor="tag" className="block text-sm font-medium text-gray-700">
                                     Tags
                                 </Label>
                                 {!isView && (
                                     <Input
-                                        value={data?.tag}
-                                        onChange={(e) => setData('tag', e.target.value)}
+                                        value={data.tagInput || ""}
+                                        onChange={(e) => setData('tagInput', e.target.value)}
                                         onKeyDown={handleKeyDown}
                                         type="text"
                                         name="tag"
                                         id="tag"
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                         disabled={isView || processing}
+                                        placeholder="Type a tag and press Enter"
                                     />
                                 )}
                                 <div className="mt-2 flex flex-wrap gap-2">
@@ -160,24 +173,23 @@ export default function ProductForm({ ...props }) {
                                         data?.tag?.map((tag: string, index: number) => (
                                             <Badge
                                                 key={index}
-                                                className="bg-blue-500 text-white"
+                                                className="bg-blue-500 text-white flex items-center gap-1"
                                             >
                                                 {tag}
                                                 {!isView && (
-                                                    <Button
+                                                    <button
                                                         onClick={() => removeTag(tag)}
-                                                        className="bg-transparent hover:bg-red-500! hover:text-white! text-red-500 cursor-pointer p-2"
+                                                        className="bg-transparent hover:bg-red-500 hover:text-white text-red-500 cursor-pointer p-1 rounded"
+                                                        type="button"
                                                     >
-                                                        <X size={20} className='mr-2' />
-                                                        Remove
-                                                    </Button>
+                                                        <X size={16} />
+                                                    </button>
                                                 )}
                                             </Badge>
                                         ))
                                     ) : (
-                                        <span className="text-gray-500">No tags added yet.</span>
-                                    )
-                                    }
+                                        <span className="text-gray-500">No tag added yet.</span>
+                                    )}
                                 </div>
                                 <InputError message={errors.tag} />
                             </div>
@@ -205,7 +217,7 @@ export default function ProductForm({ ...props }) {
                                     <Label htmlFor="Image" className="block text-sm font-medium text-gray-700">
                                         Current Image
                                     </Label>
-                                    <img src={`/storage/${product.image}`} alt={product.name} className='w-20 h-20 object-cover' />
+                                    <img src={product.image} alt={product.name} className='w-20 h-20 object-cover' />
                                 </div>
                             )}
 

@@ -18,39 +18,23 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        // dd("index");
-        // $products = Product::all();
-
-        // dump($request->all());
-
-        // Log::debug("🔄 {$request} REQUEST", [
-        //     'timestamp' => now()->format('H:i:s:v'),
-        //     'search' => $request->search,
-        //     'url' => $request->fullUrl(),
-        //     'referrer' => $request->header('referer'),
-        //     'method' => $request->method(),
-        // ]);
-
-        // Add request fingerprint to detect duplicates
-        // $requestFingerprint = md5($request->fullUrl() . $request->header('User-Agent') . microtime());
-        // Log::debug('🔢 Request Fingerprint', ['fingerprint' => $requestFingerprint]);
-
-        $products = Product::query();
+        $products = Product::with('tags');
 
         if ($request->filled('search')) {
             $search = $request->search;
 
-            $products->where(fn($query) => 
+            $products->where(
+                fn($query) =>
                 $query->where('name', 'like',  "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
                     ->orWhere('price', 'like', "%{$search}%")
             );
         }
-        
+
         if ($request->filled('sort')) {
             $sort = $request->sort;
             $direction = $request->direction ?? 'desc';
-            
+
             $products->orderBy($sort, $direction);
         }
 
@@ -61,9 +45,9 @@ class ProductController extends Controller
         if ($request->filled('max_price')) {
             $products->where('price', '<=', $request->max_price);
         }
-        
-        $products = $products->latest()->paginate(2)->withQueryString();
-        
+
+        $products = $products->latest()->paginate(2)->withQueryString();        
+
         $products->getCollection()->transform(fn($product) => [
             'id' => $product->id,
             'name' => $product->name,
@@ -75,9 +59,6 @@ class ProductController extends Controller
                 : null,
             'tag' => implode(', ', $product->tags->pluck('tag')->toArray()),
         ]);
-
-        // dd($products);
-        // Log::debug('Request ID: ' . uniqid(), ['search' => $request->search]);
 
         return Inertia::render('products/index', [
             'products' => $products,
@@ -120,7 +101,7 @@ class ProductController extends Controller
                 'price' => $request->price,
             ]);
 
-            if ($request->filled('tag', [])) {
+            if ($request->has('tag')) {
                 $this->syncTags($product, $request->tag);
             }
 
@@ -139,8 +120,22 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
+        $product->load('tags');
+
+        $formattedProduct = [
+            'id' => $product->id,
+            'name' => $product->name,
+            'description' => $product->description,
+            'price' => $product->price,
+            'created_at' => $product->created_at->format('d M Y'),
+            'image' => $product->image
+                ? asset('storage/' . $product->image)
+                : null,
+            'tag' => implode(', ', $product->tags->pluck('tag')->toArray()),
+        ];
+
         return Inertia::render('products/product-form', [
-            'product' => $product,
+            'product' => $formattedProduct,
             'isView' => true,
         ]);
     }
@@ -150,13 +145,22 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        // dd("edit");
-        // Log::debug('Processing edit with data:', $product->toArray());
-        
-        // $product->load('tags');
+        $product->load('tags');
+
+        $formattedProduct = [
+            'id' => $product->id,
+            'name' => $product->name,
+            'description' => $product->description,
+            'price' => $product->price,
+            'created_at' => $product->created_at->format('d M Y'),
+            'image' => $product->image
+                ? asset('storage/' . $product->image)
+                : null,
+            'tag' => implode(', ', $product->tags->pluck('tag')->toArray()),
+        ];
 
         return Inertia::render('products/product-form', [
-            'product' => $product,
+            'product' => $formattedProduct,
             'isEdit' => true,
         ]);
     }
@@ -166,19 +170,18 @@ class ProductController extends Controller
      */
     public function update(ProductFormRequest $request, Product $product)
     {
-        // dd("update");
         // Log::debug('Processing update with data:', $request->all());
-        if ($product){
+        if ($product) {
             $product->name = $request->name;
             $product->description = $request->description;
             $product->price = $request->price;
 
             if ($request->file('image')) {
-                
+
                 if ($product->image) {
                     Storage::disk('public')->delete($product->image);
                 }
-                
+
                 $image = $request->file('image');
                 $imageOriginalName = $image->getClientOriginalName();
                 $imagePath = $image->store('products', 'public');
@@ -187,37 +190,40 @@ class ProductController extends Controller
 
             $product->save();
 
-            $this->syncTags($product, $request->input('tag', []));
+            if ($request->has('tag')) {
+                $this->syncTags($product, $request->input('tag'));
+            }
+            
             return redirect()->route('products.index')->with('success', 'Product updated successfully.');
         }
-        
+
         return redirect()->back()->with('error', 'Failed to update product. Please try again.');
     }
 
-    private function syncTags(Product $product, string $tag)
+    private function syncTags(Product $product, $tagsInput)
     {
-        if (is_string($tag)) {
-            if (strpos($tag, '[') === 0) {
-                $tagArr = json_decode($tag, true) ?? [];
-            } else {
-                $tagArr = array_filter(array_map('trim', explode(',', $tag)));
-            }
-        } else {
-            $tagArr = (array) $tag;
+        // Log::debug("syncTags called with input:", ['input' => $tagsInput]);
+        if (is_array($tagsInput)) {
+            $tagNames = $tagsInput;
         }
-        
+        elseif (is_string($tagsInput) && strpos($tagsInput, '[') === 0) {
+            $tagNames = json_decode($tagsInput, true) ?? [];
+        }
+        else {
+            $tagNames = array_filter(array_map('trim', explode(',', $tagsInput)));
+        }
+
         $tagIds = [];
-        foreach ($tagArr as $tagName) {
+        foreach ($tagNames as $tagName) {
             $tagName = trim($tagName);
             if (!empty($tagName)) {
-                $tag = Tag::firstOrCreate([
-                    'tag' => $tagName
-                ]);
+                $tag = Tag::firstOrCreate(['tag' => $tagName]);
                 $tagIds[] = $tag->id;
             }
         }
 
-        $product->tags()->sync($tagIds);   
+        $product->tags()->sync($tagIds);
+    // ]);
     }
 
     /**
@@ -226,12 +232,12 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         // dd("destroy");
-        if ($product){
+        if ($product) {
             $product->delete();
 
             return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
         }
-        
+
         return redirect()->back()->with('error', 'Failed to delete product. Please try again.');
     }
 }
