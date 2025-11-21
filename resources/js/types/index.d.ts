@@ -55,6 +55,7 @@ export interface Product {
     image: string;
     price: number;
     created_at: string;
+    tag: string | string[];
 }
 
 export interface ProductPagination {
@@ -86,7 +87,7 @@ export interface PaginationData {
 }
 
 type SortDirection = 'asc' | 'desc';
-type SortField = 'name' | 'description' | 'price' | 'created_at';
+type SortField = 'name' | 'description' | 'price' | 'created_at' | 'tag';
 
 export interface SortProps {
     field: SortField;

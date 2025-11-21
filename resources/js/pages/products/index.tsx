@@ -25,7 +25,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index() {
-    const { props } = usePage<any>(); // Cast to any momentarily or use PageProps interface defined above
+    const { props } = usePage<any>();
     const { products, filters } = props as IndexProps;
 
     const [localSearch, setLocalSearch] = useState(filters.search || '');
@@ -33,8 +33,8 @@ export default function Index() {
     const [localMaxPrice, setLocalMaxPrice] = useState(filters.max_price || '');
 
     const [sortConfig, setSortConfig] = useState<SortProps>({
-        field: filters.sort || 'created_at',
-        direction: filters.direction || 'desc' 
+        field: filters.sort as SortField,
+        direction: filters.direction as SortProps['direction'],
     });
 
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -128,6 +128,7 @@ export default function Index() {
         };
     }, []);
 
+    // console.log('📦 Products:', products);
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Products Management" />
@@ -181,12 +182,13 @@ export default function Index() {
                                 <SortableHeader field="price" currentSort={sortConfig} onSort={handleSort} className='p-4 border-b'>Price</SortableHeader>
                                 <th className='p-4 border-b'>Image</th>
                                 <SortableHeader field="created_at" currentSort={sortConfig} onSort={handleSort} className='p-4 border-b'>Created Date</SortableHeader>
+                                <SortableHeader field="tag" currentSort={sortConfig} onSort={handleSort} className='p-4 border-b'>Tags</SortableHeader>
                                 <th className='p-4 border-b text-right'>Actions</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {products.data.length === 0 ? (
+                            {products?.data?.length === 0 ? (
                                 <tr>
                                     <td colSpan={7} className="p-8 text-center text-gray-500">
                                         No products found.
@@ -207,6 +209,7 @@ export default function Index() {
                                             )}
                                         </td>
                                         <td className='border-b px-4 py-2 text-sm'>{product.created_at}</td>
+                                        <td className='border-b px-4 py-2 text-sm'>{product.tag}</td>
 
                                         <td className='border-b px-4 py-2 text-right'>
                                             <DropdownMenu>

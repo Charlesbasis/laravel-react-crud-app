@@ -73,6 +73,7 @@ class ProductController extends Controller
             'image' => $product->image = $product->image
                 ? asset('storage/' . $product->image)
                 : null,
+            'tag' => implode(', ', $product->tags->pluck('tag')->toArray()),
         ]);
 
         // dd($products);
@@ -103,6 +104,8 @@ class ProductController extends Controller
         // dd($request->all());
         try {
             $image = null;
+            $imageOriginalName = null;
+
             if ($request->file('image')) {
                 $image = $request->file('image');
                 $imageOriginalName = $image->getClientOriginalName();
@@ -117,8 +120,8 @@ class ProductController extends Controller
                 'price' => $request->price,
             ]);
 
-            if ($request->filled('tags')) {
-                $this->syncTags($product, $request->tags);
+            if ($request->filled('tag', [])) {
+                $this->syncTags($product, $request->tag);
             }
 
             if ($product) {
@@ -150,7 +153,7 @@ class ProductController extends Controller
         // dd("edit");
         // Log::debug('Processing edit with data:', $product->toArray());
         
-        $product->load('tags');
+        // $product->load('tags');
 
         return Inertia::render('products/product-form', [
             'product' => $product,
@@ -184,22 +187,36 @@ class ProductController extends Controller
 
             $product->save();
 
-            $this->syncTags($product, $request->input('tags', []));
+            $this->syncTags($product, $request->input('tag', []));
             return redirect()->route('products.index')->with('success', 'Product updated successfully.');
         }
         
         return redirect()->back()->with('error', 'Failed to update product. Please try again.');
     }
 
-    private function syncTags(Product $product, array $tags)
+    private function syncTags(Product $product, string $tag)
     {
-        $tagIds = [];
-        foreach ($tags as $tag) {
-            $tagIds[] = Tag::firsrOrCreate([
-                'name' => trim($tag)
-            ]);
-            $tagIds[] = $tag->id;
+        if (is_string($tag)) {
+            if (strpos($tag, '[') === 0) {
+                $tagArr = json_decode($tag, true) ?? [];
+            } else {
+                $tagArr = array_filter(array_map('trim', explode(',', $tag)));
+            }
+        } else {
+            $tagArr = (array) $tag;
         }
+        
+        $tagIds = [];
+        foreach ($tagArr as $tagName) {
+            $tagName = trim($tagName);
+            if (!empty($tagName)) {
+                $tag = Tag::firstOrCreate([
+                    'tag' => $tagName
+                ]);
+                $tagIds[] = $tag->id;
+            }
+        }
+
         $product->tags()->sync($tagIds);   
     }
 

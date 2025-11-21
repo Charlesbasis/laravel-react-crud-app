@@ -9,7 +9,7 @@ class Tag extends Model
 {
     use HasFactory;
 
-    protected $fillable = [ 'name' ];
+    protected $fillable = [ 'tag' ];
 
     public function products()
     {

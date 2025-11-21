@@ -10,14 +10,11 @@ import { type BreadcrumbItem } from '@/types';
 import { Textarea } from '@headlessui/react';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle, X } from 'lucide-react';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback } from 'react';
 
 export default function ProductForm({ ...props }) {
 
     const { product, isView, isEdit } = props;
-
-    const [tagInput, setTagInput] = useState('');
-    const tagInputTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -32,12 +29,13 @@ export default function ProductForm({ ...props }) {
         image: null as File | null,
         price: product?.price || '',
         _method: isEdit ? 'PUT' : 'POST',
-        tags: product?.tags ? product.tags.map((tag: any) => tag.name) : [],
+        tag: Array.isArray(product?.tag) ? product?.tag.map((tag: any) => tag.name) : [],
+        // tags: product?.tags ? product?.tags?.map((tag: any) => tag.name) : [],
     });
 
     const removeTag = useCallback((tag: string) => {
-        setData('tags', data.tags.filter((t: string) => t !== tag));
-    }, [data.tags, setData]);
+        setData('tag', data.tag.filter((t: string) => t !== tag));
+    }, [data.tag, setData]);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -68,8 +66,19 @@ export default function ProductForm({ ...props }) {
         }
     };
 
-    console.log('Type of tags:', typeof data.tags);
-    console.log('Value of tags:', data.tags);
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const newTag = data.tag.trim();
+            if (newTag && !data.tag.includes(newTag)) {
+                setData('tag', [...data.tag, newTag]);
+            }
+            setData('tag', data.tag.filter((tag: string) => tag !== newTag));
+        }
+    };
+
+    // console.log('Type of tags:', typeof data.tags);
+    // console.log('Value of tags:', data.tags);
     
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -136,18 +145,19 @@ export default function ProductForm({ ...props }) {
                                 </Label>
                                 {!isView && (
                                     <Input
-                                        value={data?.tags}
-                                        onChange={(e) => setData('tags', e.target.value)}
+                                        value={data?.tag}
+                                        onChange={(e) => setData('tag', e.target.value)}
+                                        onKeyDown={handleKeyDown}
                                         type="text"
-                                        name="tags"
-                                        id="tags"
+                                        name="tag"
+                                        id="tag"
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                         disabled={isView || processing}
                                     />
                                 )}
                                 <div className="mt-2 flex flex-wrap gap-2">
-                                    {data?.tags?.length > 0 ? (
-                                        data?.tags?.map((tag: string, index: number) => (
+                                    {Array.isArray(data?.tag) && data?.tag?.length > 0 ? (
+                                        data?.tag?.map((tag: string, index: number) => (
                                             <Badge
                                                 key={index}
                                                 className="bg-blue-500 text-white"
@@ -169,7 +179,7 @@ export default function ProductForm({ ...props }) {
                                     )
                                     }
                                 </div>
-                                <InputError message={errors.tags} />
+                                <InputError message={errors.tag} />
                             </div>
 
                             {!isView && (
