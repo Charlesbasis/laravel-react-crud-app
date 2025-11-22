@@ -101,3 +101,46 @@ export interface PriceFilterProps {
     onPriceChange: (min_price: string, max_price: string) => void;
     className?: string;
 }
+
+export interface Tag {
+    id: number;
+    tag: string;
+    slug?: string;
+    count?: number;
+}
+
+export interface TagManagementProps {
+    initialTags: string[];
+    onTagsChange: (tags: string[]) => void;
+    availableTags: string[];
+    isViewMode?: boolean;
+    isSubmitting?: boolean;
+    maxTags?: number;
+}
+
+export interface TagState {
+    tag: string[];
+    inputValue: string;
+    availableTags: string[];
+    error: string | null;
+    isDirty: boolean;
+}
+
+export interface TagBadgeProps {
+    tag: string;
+    onClick?: (tag: string) => void;
+    onRemove?: (tag: string) => void;
+    variant?: 'default' | 'selected' | 'available';
+    disabled?: boolean;
+}
+
+export interface TagInputProps {
+    onChange: (tags: string[] | string) => void;
+    value: string;
+    placeholder?: string;
+    disabled?: boolean;
+    maxTags?: number;
+    onAddTag?: (tag: string) => void;
+    onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+    variant?: 'default' | 'selected' | 'available' | 'secondary';
+}
