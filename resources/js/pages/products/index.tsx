@@ -182,7 +182,7 @@ export default function Index() {
                                 <SortableHeader field="price" currentSort={sortConfig} onSort={handleSort} className='p-4 border-b'>Price</SortableHeader>
                                 <th className='p-4 border-b'>Image</th>
                                 <SortableHeader field="created_at" currentSort={sortConfig} onSort={handleSort} className='p-4 border-b'>Created Date</SortableHeader>
-                                <SortableHeader field="tag" currentSort={sortConfig} onSort={handleSort} className='p-4 border-b'>Tags</SortableHeader>
+                                <th className='p-4 border-b'>Tags</th>
                                 <th className='p-4 border-b text-right'>Actions</th>
                             </tr>
                         </thead>

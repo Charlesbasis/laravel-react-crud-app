@@ -72,7 +72,11 @@ class ProductController extends Controller
     public function create()
     {
         // dd("create");
-        return Inertia::render('products/product-form');
+        $allTags = Tag::all()->pluck('tag')->toArray();
+        
+        return Inertia::render('products/product-form', [
+            'allTags' => $allTags,
+        ]);
     }
 
     /**
@@ -131,7 +135,7 @@ class ProductController extends Controller
             'image' => $product->image
                 ? asset('storage/' . $product->image)
                 : null,
-            'tag' => implode(', ', $product->tags->pluck('tag')->toArray()),
+            'tag' => $product->tags->pluck('tag')->toArray(),
         ];
 
         return Inertia::render('products/product-form', [
@@ -147,6 +151,8 @@ class ProductController extends Controller
     {
         $product->load('tags');
 
+        $allTags = Tag::all()->pluck('tag')->toArray();
+
         $formattedProduct = [
             'id' => $product->id,
             'name' => $product->name,
@@ -156,12 +162,13 @@ class ProductController extends Controller
             'image' => $product->image
                 ? asset('storage/' . $product->image)
                 : null,
-            'tag' => implode(', ', $product->tags->pluck('tag')->toArray()),
+            'tag' => $product->tags->pluck('tag')->toArray(),
         ];
 
         return Inertia::render('products/product-form', [
             'product' => $formattedProduct,
             'isEdit' => true,
+            'allTags' => $allTags,
         ]);
     }
 
@@ -191,7 +198,7 @@ class ProductController extends Controller
             $product->save();
 
             if ($request->has('tag')) {
-                $this->syncTags($product, $request->input('tag'));
+                $this->syncTags($product, $request->tag);
             }
             
             return redirect()->route('products.index')->with('success', 'Product updated successfully.');
@@ -205,10 +212,7 @@ class ProductController extends Controller
         // Log::debug("syncTags called with input:", ['input' => $tagsInput]);
         if (is_array($tagsInput)) {
             $tagNames = $tagsInput;
-        }
-        elseif (is_string($tagsInput) && strpos($tagsInput, '[') === 0) {
-            $tagNames = json_decode($tagsInput, true) ?? [];
-        }
+        }        
         else {
             $tagNames = array_filter(array_map('trim', explode(',', $tagsInput)));
         }
