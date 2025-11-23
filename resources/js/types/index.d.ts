@@ -116,13 +116,13 @@ export interface TagManagementProps {
     isViewMode?: boolean;
     isSubmitting?: boolean;
     maxTags?: number;
+    errors?: { tag?: string };
 }
 
 export interface TagState {
     tag: string[];
     inputValue: string;
     availableTags: string[];
-    error: string | null;
     isDirty: boolean;
 }
 
@@ -135,7 +135,7 @@ export interface TagBadgeProps {
 }
 
 export interface TagInputProps {
-    onChange: (tags: string[] | string) => void;
+    onChange: (tags: string) => void;
     value: string;
     placeholder?: string;
     disabled?: boolean;

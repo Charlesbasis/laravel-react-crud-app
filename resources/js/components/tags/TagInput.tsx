@@ -3,7 +3,15 @@ import { Input } from "../ui/input";
 import { cn } from "@/lib/utils";
 import InputError from "../input-error";
 
-export const TagInput = ({ onChange, value, placeholder, disabled = false, maxTags = 20, onAddTag, onKeyDown, error }: TagInputProps) => {
+export const TagInput = ({ 
+    onChange, 
+    value, 
+    placeholder, 
+    disabled = false, 
+    maxTags = 20, 
+    onAddTag, 
+    onKeyDown 
+}: TagInputProps) => {
 
     const handleSubmit = () => {
         if (onAddTag) {
