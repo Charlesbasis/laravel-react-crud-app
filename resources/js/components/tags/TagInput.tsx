@@ -29,13 +29,12 @@ export const TagInput = ({
                         onKeyDown={onKeyDown}
                         type="text"
                         className={cn(
-                            "flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm",
-                            error && "border-red-500",
+                            "flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         )}
                         placeholder={placeholder}
                         disabled={disabled}
-                        aria-describedby={error ? "tag-error" : undefined}
-                        aria-invalid={!!error}
+                        // aria-describedby={error ? "tag-error" : undefined}
+                        // aria-invalid={!!error}
                     />
                 </div>
                 <button
@@ -48,7 +47,7 @@ export const TagInput = ({
                     Add Tag
                 </button>
             </div>
-            <InputError message={error} />
+            {/* <InputError message={errors?.message} /> */}
             <div className="flex justify-between text-sm text-gray-500">
                 <span>{value.length} of {maxTags} tags</span>
                 <span>Press Enter to add tags</span>

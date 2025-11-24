@@ -14,7 +14,7 @@ export const useTagManager = ({
         tag: initialTags,
         inputValue: "",
         availableTags,
-        error: null,
+        // error: null,
         isDirty: false,
     });
 
@@ -86,7 +86,11 @@ export const useTagManager = ({
     }, []);
 
     const filteredAvailableTags = React.useMemo(() => {
-        return state.availableTags.filter(tag => !state.tag.includes(tag)) && tag.toLowerCase().includes(state.inputValue.toLowerCase());
+        return state.availableTags
+            ?.filter(availableTag => 
+                !state.tag.includes(availableTag) && 
+                availableTag.toLowerCase().includes(state.inputValue.toLowerCase())
+            ) || [];
     }, [state.availableTags, state.tag, state.inputValue]);
 
     return {

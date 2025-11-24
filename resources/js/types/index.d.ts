@@ -111,12 +111,13 @@ export interface Tag {
 
 export interface TagManagementProps {
     initialTags: string[];
-    onTagsChange: (tags: string[]) => void;
+    onTagsChange?: (tags: string[]) => void;
     availableTags: string[];
     isViewMode?: boolean;
     isSubmitting?: boolean;
     maxTags?: number;
     errors?: { tag?: string };
+    tag?: string[];
 }
 
 export interface TagState {
@@ -135,12 +136,12 @@ export interface TagBadgeProps {
 }
 
 export interface TagInputProps {
-    onChange: (tags: string) => void;
+    onChange: (tag: string) => void;
     value: string;
     placeholder?: string;
     disabled?: boolean;
     maxTags?: number;
-    onAddTag?: (tag: string) => void;
+    onAddTag?: (tag: string[]) => void;
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     variant?: 'default' | 'selected' | 'available' | 'secondary';
 }

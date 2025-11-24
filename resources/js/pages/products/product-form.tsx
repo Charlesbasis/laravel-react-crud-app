@@ -1,5 +1,6 @@
 import { create as productsCreate, store as productsStore, update as productsUpdate } from '@/actions/App/Http/Controllers/ProductController';
 import InputError from '@/components/input-error';
+import { TagManager } from '@/components/tags/TagManager';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -155,13 +156,22 @@ export default function ProductForm({ ...props }) {
                                 <InputError message={errors.price} />
                             </div>
                             
-                            <div className="col-span-6 sm:col-span-4">
-                                <Label htmlFor="tag" className="block text-sm font-medium text-gray-700">
+                            <div className="col-span-6 sm:col-span-4">                                
+                                <TagManager
+                                    initialTags={data.tag || []}
+                                    availableTags={allTags || []}
+                                    onTagsChange={(newTags) => setData('tag', newTags)}
+                                    isViewMode={isView}
+                                    isSubmitting={processing}
+                                    maxTags={20}
+                                />
+
+                                {/* <Label htmlFor="tag" className="block text-sm font-medium text-gray-700">
                                     Tags {data.tag.length > 0 && `(${data.tag.length})`}
-                                </Label>
+                                </Label> */}
 
                                 {/* Tag Input Field */}
-                                {!isView && (
+                                {/* {!isView && (
                                     <div className="flex gap-2 mt-2">
                                         <Input
                                             value={data.tagInput || ""}
@@ -191,10 +201,10 @@ export default function ProductForm({ ...props }) {
                                             Add Tag
                                         </Button>
                                     </div>
-                                )}
+                                )} */}
 
                                 {/* Display Current Product Tags */}
-                                <div className="mt-4">
+                                {/* <div className="mt-4">
                                     <Label className="block text-sm font-medium text-gray-700 mb-2">
                                         Current Tags
                                     </Label>
@@ -223,10 +233,10 @@ export default function ProductForm({ ...props }) {
                                             No tags added yet. {!isView && "Type above and press Enter to add tags."}
                                         </div>
                                     )}
-                                </div>
+                                </div> */}
 
                                 {/* Display All Available Tags from Database */}
-                                {!isView && allTags && allTags.length > 0 && (
+                                {/* {!isView && allTags && allTags.length > 0 && (
                                     <div className="mt-4">
                                         <Label className="block text-sm font-medium text-gray-700 mb-2">
                                             Available Tags ({allTags.length})
@@ -265,9 +275,9 @@ export default function ProductForm({ ...props }) {
                                             Click on any tag to add it to this product
                                         </p>
                                     </div>
-                                )}
+                                )} */}
 
-                                <InputError message={errors.tag} />
+                                {/* <InputError message={errors.tag} /> */}
                             </div>
 
                             {!isView && (

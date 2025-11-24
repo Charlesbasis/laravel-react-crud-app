@@ -104,7 +104,7 @@ export const TagManager = ({
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center justify-between">
-                            Available Tags ({filteredAvailableTags.length})
+                            Available Tags ({filteredAvailableTags?.length})
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
@@ -113,8 +113,8 @@ export const TagManager = ({
                             role="list"
                             aria-label="Available product tags"
                         >
-                            {filteredAvailableTags.length > 0 ? (
-                                filteredAvailableTags.map((tag: string, index: number) => (
+                            {filteredAvailableTags?.length > 0 ? (
+                                filteredAvailableTags?.map((tag: string, index: number) => (
                                     <TagBadge
                                         key={`available-${tag}-${index}`}
                                         tag={tag}
