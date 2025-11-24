@@ -1,7 +1,6 @@
 import { create as productsCreate, store as productsStore, update as productsUpdate } from '@/actions/App/Http/Controllers/ProductController';
 import InputError from '@/components/input-error';
-import { TagManager } from '@/components/tags/TagManager';
-import { Badge } from '@/components/ui/badge';
+import { TagCombobox } from '@/components/tags/TagCombobox';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Textarea } from '@headlessui/react';
 import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle, X } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 
 export default function ProductForm({ ...props }) {
 
@@ -157,7 +156,7 @@ export default function ProductForm({ ...props }) {
                             </div>
                             
                             <div className="col-span-6 sm:col-span-4">                                
-                                <TagManager
+                                <TagCombobox
                                     initialTags={data.tag || []}
                                     availableTags={allTags || []}
                                     onTagsChange={(newTags) => setData('tag', newTags)}

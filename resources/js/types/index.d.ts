@@ -109,14 +109,14 @@ export interface Tag {
     count?: number;
 }
 
-export interface TagManagementProps {
+export interface TagComboboxProps {
     initialTags: string[];
     onTagsChange?: (tags: string[]) => void;
     availableTags: string[];
     isViewMode?: boolean;
     isSubmitting?: boolean;
     maxTags?: number;
-    errors?: { tag?: string };
+    errors?: string;
     tag?: string[];
 }
 
