@@ -1,209 +1,161 @@
-import { useTagManager } from "@/hooks/useTagManager";
-import { TagComboboxProps } from "@/types";
-import InputError from "../input-error";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Label } from "../ui/label";
-import { TagBadge } from "./TagBadge";
-import { TagInput } from "./TagInput";
-import { useState } from "react";
-import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from "@headlessui/react";
+import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react'
+import { X } from 'lucide-react'
+import { useState } from 'react'
+import { Label } from '../ui/label'
+import { Button } from '../ui/button'
+
+interface TagComboboxProps {
+  initialTags: string[]
+  availableTags: string[]
+  onTagsChange: (tags: string[]) => void
+  isViewMode?: boolean
+  isSubmitting?: boolean
+  maxTags?: number
+  errors?: string
+}
 
 export const TagCombobox = ({
-    initialTags,
-    onTagsChange,
-    availableTags,
-    isViewMode = false,
-    isSubmitting = false,
-    maxTags = 20,
-    errors,
+  initialTags,
+  availableTags,
+  onTagsChange,
+  isViewMode = false,
+  isSubmitting = false,
+  maxTags = 20,
+  errors,
 }: TagComboboxProps) => {
+  const [tags, setTags] = useState<string[]>(initialTags)
+  const [query, setQuery] = useState('')
 
+  const filteredAvailableTags = availableTags.filter(
+    tag => !tags.includes(tag) && tag.toLowerCase().includes(query.toLowerCase())
+  )
 
+  const handleAddTag = (newTag: string) => {
+    if (isSubmitting || tags.length >= maxTags) return
+    
+    const trimmedTag = newTag.trim()
+    if (!trimmedTag || tags.includes(trimmedTag)) return
 
-    // if (isViewMode) {
-    //     return (
-    //         <div className="space-y-2">
-    //             <Label className="block text-sm font-medium text-gray-700">
-    //                 Product Tags
-    //             </Label>
-    //             <div className="flex flex-wrap gap-2">
-    //                 {tags.map(tag, index) => (
-    //                 <span
-    //                     key={index}
-    //                     className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-sm font-medium transition-all duration-200"
-    //                 >
-    //                     {tag}
-    //                 </span>                
-    //                 ))}
-    //             </div>
-    //         </div>
-    //     );
-    // }
+    const newTags = [...tags, trimmedTag]
+    setTags(newTags)
+    onTagsChange(newTags)
+    setQuery('') // Clear input after adding
+  }
 
-    // return (
-    //     <div className="space-y-4">
-    //         <Combobox value={null} onChange={(value) => value && handleAddTag(value)}>
-    //             {({ open }) => (
-    //                 <>
-    //                     <div className="relative">
-    //                         <ComboboxInput
-    //                             value={query}
-    //                             onChange={(e) => setQuery(e.target.value)}
-    //                             onKeyDown={handleKeyDown}
-    //                             onFocus={() => {
-    //                                 if (!open) {
-    //                                     const button = document.querySelector('[data-headlessui-state]')
-    //                                     button?.dispatchEvent(new MouseEvent('click'))
-    //                                 }
-    //                             }}
-    //                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-    //                             placeholder="Type a tag or select from available tags"
-    //                             disabled={isSubmitting}
-    //                         />
-    //                     </div>
+  const handleRemoveTag = (tagToRemove: string) => {
+    const newTags = tags.filter(tag => tag !== tagToRemove)
+    setTags(newTags)
+    onTagsChange(newTags)
+  }
 
-    //                     <ComboboxOptions
-    //                         className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
-    //                         {filteredAvailableTags.length === 0 ? (
-    //                             <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
-    //                                 No tags found. Press enter to create "{query}"
-    //                             </div>
-    //                         ) : (
-    //                             filteredAvailableTags.map((tag, index) => (
-    //                                 <ComboboxOption
-    //                                     key={tag}
-    //                                     value={tag}
-    //                                     className={({ foucs }) =>
-    //                                         `relative cursor-default select-none py-2 pl-10 pr-4 ${foucs ? 'bg-indigo-600 text-white' : 'text-gray-900'}`
-    //                                     }
-    //                                 >
-    //                                     {tag}
-    //                                 </ComboboxOption>
-    //                             ))
-    //                         )}
-    //                         </ComboboxOptions>
-    //         </>
-    //                         )}
-    //     </Combobox>
-    // const {
-    //     tag,
-    //     inputValue,
-    //     filteredAvailableTags,
-    //     addTag,
-    //     removeTag,
-    //     setInputValue,
-    //     clearError,
-    // } = useTagManager({
-    //     initialTags,
-    //     availableTags,
-    //     maxTags,
-    //     onTagsChange,
-    // });
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      // Try to add the exact query or the first available option
+      if (query.trim()) {
+        handleAddTag(query)
+      } else if (filteredAvailableTags.length > 0) {
+        handleAddTag(filteredAvailableTags[0])
+      }
+    }
+  }
 
-    // const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    //     if (e.key === "Enter") {
-    //         addTag(inputValue);
-    //         setInputValue("");
-    //     } else if (e.key === "Backspace" && !inputValue && tag.length > 0) {
-    //         removeTag(tag[tag.length - 1]);
-    //     }
-    // };
+  if (isViewMode) {
+    // Return read-only view of tags
+    return (
+      <div className="space-y-2">
+        <Label className="block text-sm font-medium text-gray-700">Product Tags</Label>
+        <div className="flex flex-wrap gap-2">
+          {tags.map((tag, index) => (
+            <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
-    // const handleAddTag = () => {
-    //     addTag(inputValue);
-    // };
+  return (
+    <div className="space-y-4">
+      <Combobox value={null} onChange={(value) => value && handleAddTag(value)}>
+        {({ open }) => (
+          <>
+            <div className="relative">
+              <ComboboxInput
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={handleKeyDown}
+                onFocus={() => {
+                  // Workaround to open options on focus[citation:3][citation:8]
+                  if (!open) {
+                    // This ensures options are visible when input is focused
+                    const Button = document.querySelector('[data-headlessui-state]')
+                    Button?.dispatchEvent(new MouseEvent('click'))
+                  }
+                }}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                placeholder="Type a tag or select from list..."
+                disabled={isSubmitting}
+              />
+            </div>
 
-    // const handleAvailableTagClick = (tag: string) => {
-    //     addTag(tag);
-    // };
+            <ComboboxOptions className="absolute z-10 mt-1 max-h-60 w-fit overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+              {filteredAvailableTags.length === 0 ? (
+                <div className="relative cursor-default select-none px-4 py-2 text-gray-700">
+                  No tags found. Press Enter to create "{query}"
+                </div>
+              ) : (
+                filteredAvailableTags.map((tag) => (
+                  <ComboboxOption
+                    key={tag}
+                    value={tag}
+                    className={({ focus }) =>
+                      `relative cursor-default select-none py-2 pl-3 pr-9 ${
+                        focus ? 'bg-indigo-600 text-white' : 'text-gray-900'
+                      }`
+                    }
+                  >
+                    {tag}
+                  </ComboboxOption>
+                ))
+              )}
+            </ComboboxOptions>
+          </>
+        )}
+      </Combobox>
 
-    // return (
-    //     <div className="space-y-6">
-    //         <Card>
-    //             <CardHeader>
-    //                 <CardTitle
-    //                     className="flex items-center justify-between"
-    //                 >
-    //                     Product Tags {tag.length > 0 && `(${tag.length}/${maxTags})`}
-    //                 </CardTitle>
-    //             </CardHeader>
-    //             <CardContent className="space-y-6">
-    //                 {!isViewMode && (
-    //                     <TagInput
-    //                         value={inputValue}
-    //                         onChange={setInputValue}
-    //                         onKeyDown={handleKeyDown}
-    //                         onAddTag={handleAddTag}
-    //                         maxTags={maxTags}
-    //                         placeholder="Type a tag and press Enter"
-    //                     />
-    //                 )}
+      {/* Display current tags */}
+      <div>
+        <Label className="block text-sm font-medium text-gray-700 mb-2">
+          Current Tags {tags.length > 0 && `(${tags.length}/${maxTags})`}
+        </Label>
+        {tags.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+              >
+                {tag}
+                <Button
+                  onClick={() => handleRemoveTag(tag)}
+                  disabled={isSubmitting}
+                  className="bg-red-600 cursor-pointer rounded-full w-fit h-fit flex items-center justify-center"
+                >
+                  <X size={12} />
+                </Button>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div className="text-gray-500 text-sm p-2 border border-dashed border-gray-300 rounded-md text-center">
+            No tags added yet. Type above and press Enter to add tags.
+          </div>
+        )}
+      </div>
 
-    //                 <div>
-    //                     <Label className="block text-sm font-medium text-gray-700">
-    //                         Current Tags
-    //                     </Label>
-    //                     {tag.length > 0 ? (
-    //                         <div
-    //                             className="flex flex-wrap gap-2"
-    //                             role="list"
-    //                             aria-label="Current product tags"
-    //                         >
-    //                             {tag.map((tag, index) => (
-    //                                 <TagBadge
-    //                                     key={index}
-    //                                     tag={tag}
-    //                                     onClick={removeTag}
-    //                                     onRemove={removeTag}
-    //                                     variant="selected"
-    //                                 />
-    //                             ))}
-    //                         </div>
-    //                     ) : (
-    //                         <div className="text-gray-500 text-sm p-2 border border-dashed border-gray-300 rounded-md text-center">
-    //                             No tags added yet. {!isViewMode && "Type above and press Enter to add tags."}
-    //                         </div>
-    //                     )}
-    //                 </div>
-
-    //                 <InputError message={errors?.tag} />
-    //             </CardContent>
-    //         </Card>
-
-    //         {!isViewMode && availableTags.length > 0 && (
-    //             <Card>
-    //                 <CardHeader>
-    //                     <CardTitle className="flex items-center justify-between">
-    //                         Available Tags ({filteredAvailableTags?.length})
-    //                     </CardTitle>
-    //                 </CardHeader>
-    //                 <CardContent className="space-y-6">
-    //                     <div
-    //                         className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-md bg-gray-50"
-    //                         role="list"
-    //                         aria-label="Available product tags"
-    //                     >
-    //                         {filteredAvailableTags?.length > 0 ? (
-    //                             filteredAvailableTags?.map((tag: string, index: number) => (
-    //                                 <TagBadge
-    //                                     key={`available-${tag}-${index}`}
-    //                                     tag={tag}
-    //                                     onClick={handleAvailableTagClick}
-    //                                     variant="available"
-    //                                 />
-    //                             ))
-    //                         ) : (
-    //                             <div className="text-gray-500 text-sm p-2 border border-dashed border-gray-300 rounded-md text-center">
-    //                                 No tags available
-    //                             </div>
-    //                         )}
-    //                     </div>
-    //                     <p className="text-xs text-gray-500 mt-2">
-    //                         Click on any tag to add it to this product
-    //                     </p>
-    //                 </CardContent>
-    //             </Card>
-    //         )}
-    //     </div>
-    // );
+      {errors && <div className="text-red-600 text-sm">{errors}</div>}
+    </div>
+  )
 }
