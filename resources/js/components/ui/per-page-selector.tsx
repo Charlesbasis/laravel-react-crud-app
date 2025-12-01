@@ -1,0 +1,68 @@
+import { PerPageSelectorProps } from "@/types";
+import { router } from "@inertiajs/react";
+import React, { useCallback, useEffect } from "react";
+import { Label } from "./label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
+
+export const PerPageSelector = ({
+    currentPerPage,
+    perPageOptions,
+    filters,
+    route,
+    className,
+}: PerPageSelectorProps) => {
+    const [selectedPerPage, setSelectedPerPage] = React.useState(currentPerPage.toString());
+
+    const handlePerPageChange = useCallback((value: string) => {
+        setSelectedPerPage(value);
+
+        const params = {
+            ...filters,
+            per_page: value,
+            page: 1,
+        };
+
+        const queryParams: Record<string, any> = {};
+        Object.keys(params).forEach((key) => {
+            // @ts-ignore
+            if (params[key] !== '' && params[key] !== undefined && params[key] !== null) {
+                // @ts-ignore
+                queryParams[key] = params[key];
+            }
+        });
+
+        router.get(route, queryParams, {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+        });
+    }, [filters, route]);
+
+    useEffect(() => {
+        setSelectedPerPage(currentPerPage.toString());
+    }, [currentPerPage]);
+
+    // console.log('from page select:', perPageOptions)
+    return (
+        <div className="flex items-center gap-2">
+            <Label htmlFor="perPage">
+                Items per page
+            </Label>
+            <Select
+                value={selectedPerPage}
+                onValueChange={handlePerPageChange}
+            >
+                <SelectTrigger className="h-9 w-[70px]">
+                    <SelectValue placeholder={selectedPerPage} />
+                </SelectTrigger>
+                <SelectContent>
+                    {perPageOptions.map((perPage) => (
+                        <SelectItem key={perPage} value={perPage.toString()}>
+                            {perPage}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+    );
+}

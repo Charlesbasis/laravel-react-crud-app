@@ -26,7 +26,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Index() {
     const { props } = usePage<any>();
-    const { products, filters } = props as IndexProps;
+    const { products, filters, perPageOptions = [2, 5, 10, 25, 50, 100], currentPerPage = 2 } = props as IndexProps;
 
     const [localSearch, setLocalSearch] = useState(filters.search || '');
     const [localMinPrice, setLocalMinPrice] = useState(filters.min_price || '');
@@ -46,6 +46,7 @@ export default function Index() {
             max_price: string;
             sort: SortField;
             direction: 'asc' | 'desc';
+            per_page: number;
         }> = {}
     ) => {
         const params = {
@@ -54,6 +55,7 @@ export default function Index() {
             max_price: localMaxPrice,
             sort: sortConfig.field,
             direction: sortConfig.direction,
+            per_page: currentPerPage,
             ...overrideParams, 
         };
 

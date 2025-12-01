@@ -18,6 +18,18 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
+        $availablePerPage = [2, 5, 10, 25, 50, 100];
+
+        $perPage = $request->filled('per_page')
+            ? (int) $request->per_page
+            : session('products_per_page', 2);
+
+        if (!in_array($perPage, $availablePerPage)) {
+            $perPage = 2;
+        }
+
+        session(['products_per_page' => $perPage]);
+        
         $products = Product::with('tags');
 
         if ($request->filled('search')) {
@@ -46,7 +58,7 @@ class ProductController extends Controller
             $products->where('price', '<=', $request->max_price);
         }
 
-        $products = $products->latest()->paginate(2)->withQueryString();        
+        $products = $products->latest()->paginate($perPage)->withQueryString();        
 
         $products->getCollection()->transform(fn($product) => [
             'id' => $product->id,

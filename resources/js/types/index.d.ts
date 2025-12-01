@@ -65,6 +65,8 @@ export interface ProductPagination {
     from: number;
     to: number;
     total: number;
+    showPerPageInfo?: boolean;
+    per_page: number;
 }
 
 export interface FilterProps {
@@ -73,11 +75,14 @@ export interface FilterProps {
     direction?: string;
     min_price?: string;
     max_price?: string;
+    per_page?: number;
 }
 
 export interface IndexProps {
     products: ProductPagination;
     filters: FilterProps;
+    perPageOptions?: number[];
+    currentPerPage?: number;
 }
 
 export interface PaginationData {
@@ -85,6 +90,8 @@ export interface PaginationData {
     from: number;
     to: number;
     total: number;
+    per_page: number;
+    showPerPageInfo?: boolean;
 }
 
 type SortDirection = 'asc' | 'desc';
@@ -143,4 +150,12 @@ export interface TagInputProps {
     onAddTag?: (tag: string[]) => void;
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     variant?: 'default' | 'selected' | 'available' | 'secondary';
+}
+
+export interface PerPageSelectorProps {
+    currentPerPage: number;
+    perPageOptions: number[];
+    filters: FilterProps;
+    route: string;
+    className?: string;
 }
