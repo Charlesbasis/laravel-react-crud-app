@@ -3,16 +3,7 @@ import { X } from 'lucide-react'
 import { useState } from 'react'
 import { Label } from '../ui/label'
 import { Button } from '../ui/button'
-
-interface TagComboboxProps {
-  initialTags: string[]
-  availableTags: string[]
-  onTagsChange: (tags: string[]) => void
-  isViewMode?: boolean
-  isSubmitting?: boolean
-  maxTags?: number
-  errors?: string
-}
+import { TagComboboxProps } from '@/types'
 
 export const TagCombobox = ({
   initialTags,
@@ -39,7 +30,7 @@ export const TagCombobox = ({
     const newTags = [...tags, trimmedTag]
     setTags(newTags)
     onTagsChange(newTags)
-    setQuery('') // Clear input after adding
+    setQuery('') 
   }
 
   const handleRemoveTag = (tagToRemove: string) => {
@@ -50,8 +41,9 @@ export const TagCombobox = ({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault()
-      // Try to add the exact query or the first available option
+      e.preventDefault();
+      e.stopPropagation();
+
       if (query.trim()) {
         handleAddTag(query)
       } else if (filteredAvailableTags.length > 0) {
@@ -61,7 +53,6 @@ export const TagCombobox = ({
   }
 
   if (isViewMode) {
-    // Return read-only view of tags
     return (
       <div className="space-y-2">
         <Label className="block text-sm font-medium text-gray-700">Product Tags</Label>
@@ -83,13 +74,12 @@ export const TagCombobox = ({
           <>
             <div className="relative">
               <ComboboxInput
+                type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 onKeyDown={handleKeyDown}
                 onFocus={() => {
-                  // Workaround to open options on focus[citation:3][citation:8]
                   if (!open) {
-                    // This ensures options are visible when input is focused
                     const Button = document.querySelector('[data-headlessui-state]')
                     Button?.dispatchEvent(new MouseEvent('click'))
                   }

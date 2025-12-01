@@ -38,13 +38,6 @@ export default function ProductForm({ ...props }) {
         availableTags: allTags,
     });
 
-    const removeTag = (tagToRemove: any) => {
-        setData({
-            ...data,
-            tag: data.tag.filter((tag: string) => tag !== tagToRemove),
-        });
-    };
-
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -72,25 +65,7 @@ export default function ProductForm({ ...props }) {
         if (e.target.files && e.target.files.length > 0) {
             setData('image', e.target.files[0]);
         }
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-        }
-
-        if (e.key === 'Enter' && data.tagInput) {
-            const newTag = data.tagInput.trim();
-
-            if (newTag && !data.tag.includes(newTag)) {
-                setData({
-                    ...data,
-                    tag: [...data.tag, newTag],
-                    tagInput: ""
-                });
-            }
-        }
-    };   
+    };  
 
     // console.log('Type of tag:', typeof data.tag);
     // console.log('Value of tag:', data.tag);
@@ -163,120 +138,7 @@ export default function ProductForm({ ...props }) {
                                     isViewMode={isView}
                                     isSubmitting={processing}
                                     maxTags={20}
-                                />
-
-                                {/* <Label htmlFor="tag" className="block text-sm font-medium text-gray-700">
-                                    Tags {data.tag.length > 0 && `(${data.tag.length})`}
-                                </Label> */}
-
-                                {/* Tag Input Field */}
-                                {/* {!isView && (
-                                    <div className="flex gap-2 mt-2">
-                                        <Input
-                                            value={data.tagInput || ""}
-                                            onChange={(e) => setData('tagInput', e.target.value)}
-                                            onKeyDown={handleKeyDown}
-                                            type="text"
-                                            name="tag"
-                                            id="tag"
-                                            className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                            disabled={processing}
-                                            placeholder="Type a tag and press Enter or click Add"
-                                        />
-                                        <Button
-                                            type="button"
-                                            onClick={() => {
-                                                if (data.tagInput && data.tagInput.trim()) {
-                                                    const newTag = data.tagInput.trim();
-                                                    if (newTag && !data.tag.includes(newTag)) {
-                                                        setData('tag', [...data.tag, newTag]);
-                                                        setData('tagInput', "");
-                                                    }
-                                                }
-                                            }}
-                                            className="rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500"
-                                            disabled={processing}
-                                        >
-                                            Add Tag
-                                        </Button>
-                                    </div>
-                                )} */}
-
-                                {/* Display Current Product Tags */}
-                                {/* <div className="mt-4">
-                                    <Label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Current Tags
-                                    </Label>
-                                    {Array.isArray(data?.tag) && data?.tag?.length > 0 ? (
-                                        <div className="flex flex-wrap gap-2">
-                                            {data.tag.map((tag: string, index: number) => (
-                                                <Badge
-                                                    key={index}
-                                                    className="bg-blue-500 text-white flex items-center gap-1"
-                                                >
-                                                    {tag}
-                                                    {!isView && (
-                                                        <button
-                                                            onClick={() => removeTag(tag)}
-                                                            className="bg-transparent hover:bg-red-500 hover:text-white text-red-500 cursor-pointer p-1 rounded"
-                                                            type="button"
-                                                        >
-                                                            <X size={16} />
-                                                        </button>
-                                                    )}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-gray-500 text-sm p-2 border border-dashed border-gray-300 rounded-md text-center">
-                                            No tags added yet. {!isView && "Type above and press Enter to add tags."}
-                                        </div>
-                                    )}
-                                </div> */}
-
-                                {/* Display All Available Tags from Database */}
-                                {/* {!isView && allTags && allTags.length > 0 && (
-                                    <div className="mt-4">
-                                        <Label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Available Tags ({allTags.length})
-                                        </Label>
-                                        <div className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-md bg-gray-50">
-                                            {allTags.map((existingTag: string, index: number) => (
-                                                <Badge
-                                                    key={index}
-                                                    className={`cursor-pointer transition-colors ${data.tag.includes(existingTag)
-                                                            ? 'bg-green-500 text-white'
-                                                            : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                                                        }`}
-                                                    onClick={() => {
-                                                        if (!data.tag.includes(existingTag)) {
-                                                            setData('tag', [...data.tag, existingTag]);
-                                                        }
-                                                    }}
-                                                >
-                                                    {existingTag}
-                                                    {data.tag.includes(existingTag) && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                removeTag(existingTag);
-                                                            }}
-                                                            className="ml-1 bg-transparent hover:bg-red-500 hover:text-white text-red-500 cursor-pointer p-1 rounded"
-                                                            type="button"
-                                                        >
-                                                            <X size={12} />
-                                                        </button>
-                                                    )}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Click on any tag to add it to this product
-                                        </p>
-                                    </div>
-                                )} */}
-
-                                {/* <InputError message={errors.tag} /> */}
+                                />                                
                             </div>
 
                             {!isView && (

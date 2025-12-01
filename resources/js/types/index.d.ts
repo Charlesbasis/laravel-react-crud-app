@@ -110,14 +110,13 @@ export interface Tag {
 }
 
 export interface TagComboboxProps {
-    initialTags: string[];
-    onTagsChange?: (tags: string[]) => void;
-    availableTags: string[];
-    isViewMode?: boolean;
-    isSubmitting?: boolean;
-    maxTags?: number;
-    errors?: string;
-    tag?: string[];
+  initialTags: string[]
+  availableTags: string[]
+  onTagsChange: (tags: string[]) => void
+  isViewMode?: boolean
+  isSubmitting?: boolean
+  maxTags?: number
+  errors?: string
 }
 
 export interface TagState {
