@@ -10,7 +10,12 @@ export const Pagination = ({ products, showPerPageInfo = true } : { products: Pa
             <p>Showing <strong>{products?.from}</strong> to <strong>{products?.to}</strong> from Total <strong>{products?.total}</strong> entries</p>
 
             {showPerPageInfo && 
-                <PerPageSelector currentPerPage={products.per_page} perPageOptions={[2, 5, 10, 25, 50, 100]} filters={{}} route={''} />
+                <PerPageSelector
+                    currentPerPage={products?.per_page || 2}
+                    perPageOptions={[]}
+                    filters={{}}
+                    route={''}
+                />
             }
             
             <div className="flex gap-2">

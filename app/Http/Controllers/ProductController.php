@@ -18,17 +18,22 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
+        // Log::debug('Request received:', [
+        //     'all_params' => $request->all(),
+        //     'per_page_raw' => $request->per_page,
+        //     'per_page_type' => gettype($request->per_page)
+        // ]);
+        
         $availablePerPage = [2, 5, 10, 25, 50, 100];
 
-        $perPage = $request->filled('per_page')
-            ? (int) $request->per_page
-            : session('products_per_page', 2);
+        $perPage = $request->filled('per_page', 2);
+        $perPage = (int) $perPage;
 
         if (!in_array($perPage, $availablePerPage)) {
             $perPage = 2;
         }
 
-        session(['products_per_page' => $perPage]);
+        // Log::debug('Using per page:', [$perPage]);
         
         $products = Product::with('tags');
 
@@ -58,6 +63,8 @@ class ProductController extends Controller
             $products->where('price', '<=', $request->max_price);
         }
 
+        // Log::debug('Parsed per_page:', ['value' => $perPage, 'type' => gettype($perPage)]);
+
         $products = $products->latest()->paginate($perPage)->withQueryString();        
 
         $products->getCollection()->transform(fn($product) => [
@@ -74,7 +81,9 @@ class ProductController extends Controller
 
         return Inertia::render('products/index', [
             'products' => $products,
-            'filters' => $request->only(['search', 'sort', 'direction', 'min_price', 'max_price']),
+            'filters' => $request->only(['search', 'sort', 'direction', 'min_price', 'max_price', 'per_page']),
+            'perPageOptions' => $availablePerPage,
+            'currentPerPage' => $products->perPage(),
         ]);
     }
 

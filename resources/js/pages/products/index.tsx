@@ -26,8 +26,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Index() {
     const { props } = usePage<any>();
-    const { products, filters, perPageOptions = [2, 5, 10, 25, 50, 100], currentPerPage = 2 } = props as IndexProps;
+    // console.log('📦 FULL Inertia Response:', {
+    //     props: JSON.parse(JSON.stringify(props)),
+    //     keys: Object.keys(props),
+    //     hasCurrentPerPage: 'currentPerPage' in props,
+    //     currentPerPageValue: props.currentPerPage,
+    //     filtersValue: props.filters,
+    //     productsPerPage: props.products?.per_page
+    // });
 
+    const { products, filters, perPageOptions = [2, 5, 10, 25, 50, 100] } = props as IndexProps;
+
+    const currentPerPage = products?.per_page || 2;
+    
     const [localSearch, setLocalSearch] = useState(filters.search || '');
     const [localMinPrice, setLocalMinPrice] = useState(filters.min_price || '');
     const [localMaxPrice, setLocalMaxPrice] = useState(filters.max_price || '');
@@ -39,7 +50,15 @@ export default function Index() {
 
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const fetchData = useCallback((
+    // console.log('sending params:', {
+    //     search: localSearch,
+    //     min_price: localMinPrice,
+    //     max_price: localMaxPrice,
+    //     sort: sortConfig.field,
+    //     direction: sortConfig.direction,
+    //     per_page: currentPerPage,
+    // });
+    const fetchData = useCallback((        
         overrideParams: Partial<{
             search: string;
             min_price: string;
@@ -49,15 +68,21 @@ export default function Index() {
             per_page: number;
         }> = {}
     ) => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlPerPage = urlParams.get('per_page');
+        const perPageValue = urlPerPage ? parseInt(urlPerPage) : (products?.per_page || 2);
+        
         const params = {
             search: localSearch,
             min_price: localMinPrice,
             max_price: localMaxPrice,
             sort: sortConfig.field,
             direction: sortConfig.direction,
-            per_page: currentPerPage,
+            per_page: perPageValue,
             ...overrideParams, 
         };
+
+        console.log('📤 Sending with per_page:', perPageValue, 'Full params:', params);
 
         const queryParams: Record<string, any> = {};
         Object.keys(params).forEach((key) => {
@@ -73,7 +98,7 @@ export default function Index() {
             preserveState: true,
             replace: true,
         });
-    }, [localSearch, localMinPrice, localMaxPrice, sortConfig]);
+    }, [localSearch, localMinPrice, localMaxPrice, sortConfig, products?.per_page]);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -89,7 +114,7 @@ export default function Index() {
     const handlePriceChange = (min: string, max: string) => {
         setLocalMinPrice(min);
         setLocalMaxPrice(max);
-        fetchData({ min_price: min, max_price: max });
+        fetchData({ min_price: min, max_price: max, per_page: currentPerPage });
     };
 
     const handleSort = (field: SortField) => {
@@ -101,7 +126,7 @@ export default function Index() {
         const newSort = { field, direction: newDirection };
         setSortConfig(newSort);
 
-        fetchData({ sort: field, direction: newDirection });
+        fetchData({ sort: field, direction: newDirection, per_page: currentPerPage });
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -118,7 +143,7 @@ export default function Index() {
         setLocalMaxPrice('');
         setSortConfig({ field: 'created_at', direction: 'desc' });
 
-        router.get(productsIndex().url, {}, {
+        router.get(productsIndex().url, { per_page: currentPerPage }, {
             preserveScroll: true,
             preserveState: true,
         });
@@ -131,6 +156,14 @@ export default function Index() {
     }, []);
 
     // console.log('📦 Products:', products);
+    // useEffect(() => {
+    //     console.log('📊 Current props:', {
+    //         currentPerPage,
+    //         type: typeof currentPerPage,
+    //         filters,
+    //         productsPerPage: products?.per_page
+    //     });
+    // }, [currentPerPage, filters, products]);
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Products Management" />
