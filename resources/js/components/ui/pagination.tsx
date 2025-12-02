@@ -2,8 +2,9 @@ import { PaginationData } from "@/types";
 import { Link } from "@inertiajs/react";
 import { PerPageSelector } from "./per-page-selector";
 
-export const Pagination = ({ products, showPerPageInfo = true } : { products: PaginationData, showPerPageInfo?: boolean }) => {
+export const Pagination = ({ products, showPerPageInfo = true, perPageOptions } : { products: PaginationData, showPerPageInfo?: boolean, perPageOptions?: number[] }) => {
 
+    console.log('Products:', products);
     return (
         <div className="flex items-center justify-between mt-4">
             
@@ -11,8 +12,8 @@ export const Pagination = ({ products, showPerPageInfo = true } : { products: Pa
 
             {showPerPageInfo && 
                 <PerPageSelector
-                    currentPerPage={products?.per_page || 2}
-                    perPageOptions={[]}
+                    currentPerPage={products?.current_page}
+                    perPageOptions={perPageOptions as number[]}
                     filters={{}}
                     route={''}
                 />

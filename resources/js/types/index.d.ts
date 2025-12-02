@@ -92,6 +92,7 @@ export interface PaginationData {
     total: number;
     per_page: number;
     showPerPageInfo?: boolean;
+    current_page: number;
 }
 
 type SortDirection = 'asc' | 'desc';

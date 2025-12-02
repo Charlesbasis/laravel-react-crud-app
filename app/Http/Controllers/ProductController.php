@@ -26,7 +26,7 @@ class ProductController extends Controller
         
         $availablePerPage = [2, 5, 10, 25, 50, 100];
 
-        $perPage = $request->filled('per_page', 2);
+        $perPage = $request->filled('per_page');
         $perPage = (int) $perPage;
 
         if (!in_array($perPage, $availablePerPage)) {
@@ -79,6 +79,9 @@ class ProductController extends Controller
             'tag' => implode(', ', $product->tags->pluck('tag')->toArray()),
         ]);
 
+        // Log::debug('Rendering index with data:', [
+        //     $availablePerPage
+        // ]);
         return Inertia::render('products/index', [
             'products' => $products,
             'filters' => $request->only(['search', 'sort', 'direction', 'min_price', 'max_price', 'per_page']),

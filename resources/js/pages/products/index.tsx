@@ -35,7 +35,7 @@ export default function Index() {
     //     productsPerPage: props.products?.per_page
     // });
 
-    const { products, filters, perPageOptions = [2, 5, 10, 25, 50, 100] } = props as IndexProps;
+    const { products, filters, perPageOptions } = props as IndexProps;
 
     const currentPerPage = products?.per_page || 2;
     
@@ -286,7 +286,7 @@ export default function Index() {
                         </tbody>
                     </table>
                 </div>
-                <Pagination products={products} />
+                <Pagination products={products} perPageOptions={perPageOptions} />
             </div>
         </AppLayout>
     );

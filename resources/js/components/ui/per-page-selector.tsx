@@ -11,16 +11,15 @@ export const PerPageSelector = ({
     route,
     className,
 }: PerPageSelectorProps) => {
-    const [selectedValue, setSelectedValue] = React.useState<number>(currentPerPage);
+    const [selectedPerPage, setSelectedPerPage] = React.useState<number>(currentPerPage);
 
-    const handlePerPageChange = useCallback((value: string) => {
-        const newValue = parseInt(value, 10);
-
-        setSelectedValue(newValue);
+    const handlePerPageChange = useCallback((value: number) => {
+        setSelectedPerPage(value);
 
         const params = {
             ...filters,
-            per_page: newValue,
+            per_page: value,
+            page: 1,
         };
 
         const queryParams: Record<string, any> = {};
@@ -40,21 +39,22 @@ export const PerPageSelector = ({
     }, [filters, route]);
 
     useEffect(() => {
-        setSelectedValue(currentPerPage);
+        setSelectedPerPage(currentPerPage);
     }, [currentPerPage]);
 
-    // console.log('from page select:', perPageOptions)
+    console.log('from page select perPageOptions:', perPageOptions)
+    console.log('from page select selectedPerPage:', selectedPerPage)
     return (
         <div className="flex items-center gap-2">
             <Label htmlFor="perPage">
                 Items per page
             </Label>
             <Select
-                value={selectedValue}
+                value={selectedPerPage}
                 onValueChange={handlePerPageChange}
             >
                 <SelectTrigger className="h-9 w-[70px]">
-                    <SelectValue placeholder={selectedValue} />
+                    <SelectValue placeholder={selectedPerPage} />
                 </SelectTrigger>
                 <SelectContent>
                     {perPageOptions.map((perPage) => (
