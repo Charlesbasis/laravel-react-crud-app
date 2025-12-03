@@ -68,9 +68,6 @@ export default function Index() {
             per_page: number;
         }> = {}
     ) => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlPerPage = urlParams.get('per_page');
-        const perPageValue = urlPerPage ? parseInt(urlPerPage) : (products?.per_page || 2);
         
         const params = {
             search: localSearch,
@@ -78,11 +75,9 @@ export default function Index() {
             max_price: localMaxPrice,
             sort: sortConfig.field,
             direction: sortConfig.direction,
-            per_page: perPageValue,
+            per_page: products?.per_page || 2,
             ...overrideParams, 
         };
-
-        console.log('📤 Sending with per_page:', perPageValue, 'Full params:', params);
 
         const queryParams: Record<string, any> = {};
         Object.keys(params).forEach((key) => {
@@ -114,7 +109,7 @@ export default function Index() {
     const handlePriceChange = (min: string, max: string) => {
         setLocalMinPrice(min);
         setLocalMaxPrice(max);
-        fetchData({ min_price: min, max_price: max, per_page: currentPerPage });
+        fetchData({ min_price: min, max_price: max });
     };
 
     const handleSort = (field: SortField) => {
@@ -126,7 +121,7 @@ export default function Index() {
         const newSort = { field, direction: newDirection };
         setSortConfig(newSort);
 
-        fetchData({ sort: field, direction: newDirection, per_page: currentPerPage });
+        fetchData({ sort: field, direction: newDirection });
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

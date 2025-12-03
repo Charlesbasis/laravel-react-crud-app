@@ -1,10 +1,22 @@
-import { PaginationData } from "@/types";
+import { FilterProps, PaginationData } from "@/types";
 import { Link } from "@inertiajs/react";
 import { PerPageSelector } from "./per-page-selector";
 
-export const Pagination = ({ products, showPerPageInfo = true, perPageOptions } : { products: PaginationData, showPerPageInfo?: boolean, perPageOptions?: number[] }) => {
+export const Pagination = ({
+    products,
+    showPerPageInfo = true,
+    perPageOptions,
+    filters = {},
+    route = '',
+}: {
+    products: PaginationData,
+    showPerPageInfo?: boolean,
+    perPageOptions?: number[],
+    filters?: FilterProps,
+    route?: string,
+}) => {
 
-    console.log('Products:', products);
+    // console.log('Products:', products);
     return (
         <div className="flex items-center justify-between mt-4">
             
@@ -12,10 +24,10 @@ export const Pagination = ({ products, showPerPageInfo = true, perPageOptions } 
 
             {showPerPageInfo && 
                 <PerPageSelector
-                    currentPerPage={products?.current_page}
+                    currentPerPage={products?.per_page}
                     perPageOptions={perPageOptions as number[]}
-                    filters={{}}
-                    route={''}
+                    filters={filters}
+                    route={route}
                 />
             }
             

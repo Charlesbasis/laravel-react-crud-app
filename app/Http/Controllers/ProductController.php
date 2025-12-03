@@ -26,8 +26,9 @@ class ProductController extends Controller
         
         $availablePerPage = [2, 5, 10, 25, 50, 100];
 
-        $perPage = $request->filled('per_page');
-        $perPage = (int) $perPage;
+        $perPage = $request->filled('per_page')
+            ? (int) $request->input('per_page')
+            : 2;
 
         if (!in_array($perPage, $availablePerPage)) {
             $perPage = 2;
@@ -86,7 +87,7 @@ class ProductController extends Controller
             'products' => $products,
             'filters' => $request->only(['search', 'sort', 'direction', 'min_price', 'max_price', 'per_page']),
             'perPageOptions' => $availablePerPage,
-            'currentPerPage' => $products->perPage(),
+            'currentPerPage' => $perPage,
         ]);
     }
 
