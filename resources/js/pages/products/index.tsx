@@ -7,6 +7,8 @@ import {
 } from '@/actions/App/Http/Controllers/ProductController';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ExportImportButtons } from '@/components/ui/export-import-buttons';
+import { ImportPreviewModal } from '@/components/ui/import-preview-modal';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import { PriceFilter } from '@/components/ui/price-filter';
@@ -95,6 +97,9 @@ export default function Index() {
         });
     }, [localSearch, localMinPrice, localMaxPrice, sortConfig, products?.per_page]);
 
+    const [importErrors, setImportErrors] = useState<any[]>([]);
+    const [showImportPreview, setShowImportPreview] = useState(false);
+    
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setLocalSearch(value);
@@ -201,6 +206,16 @@ export default function Index() {
                     </div>
                 </div>
 
+                <div className='ml-auto flex items-center gap-2'>
+                    <ExportImportButtons filters={filters} />
+                    <Link
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg inline-flex items-center transition-colors"
+                        href={productsCreate().url}
+                    >
+                        Add Product
+                    </Link>
+                </div>
+
                 {/* Table */}
                 <div className="rounded-md border">
                     <table className='w-full table-auto'>
@@ -282,6 +297,12 @@ export default function Index() {
                     </table>
                 </div>
                 <Pagination products={products} perPageOptions={perPageOptions} />
+
+                <ImportPreviewModal
+                    isOpen={showImportPreview}
+                    onClose={() => setShowImportPreview(false)}
+                    errors={importErrors}
+                />
             </div>
         </AppLayout>
     );

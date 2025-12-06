@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ProductsExport;
 use App\Http\Requests\ProductFormRequest;
+use App\Imports\ProductsImport;
 use App\Models\Product;
 use App\Models\Tag;
 use Exception;
@@ -10,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
@@ -269,4 +272,95 @@ class ProductController extends Controller
 
         return redirect()->back()->with('error', 'Failed to delete product. Please try again.');
     }
+
+    /**
+     * Export products
+     */
+    public function export(Request $request)
+    {
+        $filters = $request->only(['search', 'min_price', 'max_price', 'sort', 'direction']);
+        
+        $fileName = 'products_' . date('Y-m-d_H-i-s') . '.xlsx';
+        
+        return Excel::download(new ProductsExport($filters), $fileName);
+    }
+    
+    /**
+     * Import products
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:5120', // 5MB max
+        ]);
+        
+        try {
+            $import = new ProductsImport();
+            Excel::import($import, $request->file('file'));
+            
+            $importedCount = $import->getRowCount();
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully imported {$importedCount} products.",
+                'count' => $importedCount,
+            ]);
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            
+            $errors = [];
+            foreach ($failures as $failure) {
+                $errors[] = [
+                    'row' => $failure->row(),
+                    'attribute' => $failure->attribute(),
+                    'errors' => $failure->errors(),
+                    'values' => $failure->values(),
+                ];
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Import failed due to validation errors',
+                'errors' => $errors,
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Import error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Import failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+    
+    /**
+     * Download import template
+     */
+    public function downloadTemplate()
+    {
+        $templateData = [
+            ['Name', 'Description', 'Price', 'Image URL', 'Tags'],
+            ['Sample Product', 'Sample description', '19.99', 'https://example.com/image.jpg', 'tag1,tag2'],
+            ['Another Product', 'Another description', '29.99', '', 'premium'],
+        ];
+        
+        $fileName = 'products_import_template_' . date('Y-m-d') . '.csv';
+        
+        return Excel::download(new class($templateData) implements \Maatwebsite\Excel\Concerns\FromArray {
+            private $data;
+            
+            public function __construct(array $data)
+            {
+                $this->data = $data;
+            }
+            
+            public function array(): array
+            {
+                return $this->data;
+            }
+        }, $fileName, \Maatwebsite\Excel\Excel::CSV, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
 }
