@@ -42,8 +42,8 @@ export const PerPageSelector = ({
         setSelectedPerPage(currentPerPage);
     }, [currentPerPage]);
 
-    console.log('from page select perPageOptions:', perPageOptions)
-    console.log('from page select selectedPerPage:', selectedPerPage)
+    // console.log('from page select perPageOptions:', perPageOptions)
+    // console.log('from page select selectedPerPage:', selectedPerPage)
     return (
         <div className="flex items-center gap-2">
             <Label htmlFor="perPage">

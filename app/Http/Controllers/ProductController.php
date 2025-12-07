@@ -291,23 +291,20 @@ class ProductController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv|max:5120', // 5MB max
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
         ]);
-        
+
         try {
             $import = new ProductsImport();
             Excel::import($import, $request->file('file'));
-            
-            $importedCount = $import->getRowCount();
-            
+
             return response()->json([
                 'success' => true,
-                'message' => "Successfully imported {$importedCount} products.",
-                'count' => $importedCount,
+                'message' => "Products imported successfully.",
             ]);
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $failures = $e->failures();
-            
+
             $errors = [];
             foreach ($failures as $failure) {
                 $errors[] = [
@@ -317,7 +314,7 @@ class ProductController extends Controller
                     'values' => $failure->values(),
                 ];
             }
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Import failed due to validation errors',
@@ -325,42 +322,12 @@ class ProductController extends Controller
             ], 422);
         } catch (\Exception $e) {
             Log::error('Import error: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Import failed: ' . $e->getMessage(),
             ], 500);
         }
-    }
-    
-    /**
-     * Download import template
-     */
-    public function downloadTemplate()
-    {
-        $templateData = [
-            ['Name', 'Description', 'Price', 'Image URL', 'Tags'],
-            ['Sample Product', 'Sample description', '19.99', 'https://example.com/image.jpg', 'tag1,tag2'],
-            ['Another Product', 'Another description', '29.99', '', 'premium'],
-        ];
-        
-        $fileName = 'products_import_template_' . date('Y-m-d') . '.csv';
-        
-        return Excel::download(new class($templateData) implements \Maatwebsite\Excel\Concerns\FromArray {
-            private $data;
-            
-            public function __construct(array $data)
-            {
-                $this->data = $data;
-            }
-            
-            public function array(): array
-            {
-                return $this->data;
-            }
-        }, $fileName, \Maatwebsite\Excel\Excel::CSV, [
-            'Content-Type' => 'text/csv',
-        ]);
     }
 
 }

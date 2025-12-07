@@ -15,7 +15,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+    
+    Route::get('products/export', [ProductController::class, 'export'])->name('products.export.download');
 
+    Route::post('products/import', [ProductController::class, 'import'])->name('products.import');
+    
     Route::resource('products', ProductController::class);
 });
 

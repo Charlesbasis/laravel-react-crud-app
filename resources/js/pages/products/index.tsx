@@ -208,12 +208,6 @@ export default function Index() {
 
                 <div className='ml-auto flex items-center gap-2'>
                     <ExportImportButtons filters={filters} />
-                    <Link
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg inline-flex items-center transition-colors"
-                        href={productsCreate().url}
-                    >
-                        Add Product
-                    </Link>
                 </div>
 
                 {/* Table */}
@@ -259,7 +253,7 @@ export default function Index() {
                                         <td className='border-b px-4 py-2 text-right'>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                    <Button variant="ghost" className="cursor-pointer h-8 w-8 p-0">
                                                         <span className="sr-only">Open menu</span>
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>

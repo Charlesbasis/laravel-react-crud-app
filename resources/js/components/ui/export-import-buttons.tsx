@@ -1,8 +1,8 @@
+import axiosInstance from '@/lib/axios';
+import { router } from '@inertiajs/react';
+import { AlertCircle, CheckCircle, Download, FileSpreadsheet, Upload, X } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import { Button } from './button';
-import { Download, Upload, FileSpreadsheet, AlertCircle, CheckCircle } from 'lucide-react';
-import { router } from '@inertiajs/react';
-import { saveAs } from 'file-saver';
 
 interface ExportImportButtonsProps {
     filters: {
@@ -51,16 +51,17 @@ export function ExportImportButtons({ filters }: ExportImportButtonsProps) {
         formData.append('file', file);
 
         try {
-            const response = await fetch('/products/import', {
-                method: 'POST',
+            const response = await axiosInstance.post('/products/import', formData, {
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'Content-Type': 'multipart/form-data',
                 },
-                body: formData,
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
+                    console.log(`Upload Progress: ${percentCompleted}%`)
+                },
             });
 
-            const result = await response.json();
+            const result = await response.data;
             
             setImportResult(result);
 
@@ -70,11 +71,29 @@ export function ExportImportButtons({ filters }: ExportImportButtonsProps) {
                     router.reload({ only: ['products'] });
                 }, 1500);
             }
-        } catch (error) {
-            setImportResult({
-                success: false,
-                message: 'Failed to import file. Please try again.',
-            });
+        } catch (error: any) {
+            if (error.response) {
+                console.error('Error importing file:', error.response.data);
+                setImportResult({
+                    success: false,
+                    message: 'Failed to import file. Please try again.',
+                    errors: error.response?.data?.errors || [],
+                });
+            } else if (error.request) {
+                console.error('Error importing file:', error.request);
+                setImportResult({
+                    success: false,
+                    message: 'Failed to import file. Please try again.',
+                    errors: [error.request],
+                });
+            } else {
+                console.error('Error importing file:', error);
+                setImportResult({
+                    success: false,
+                    message: 'Failed to import file. Please try again.',
+                    errors: [error],
+                });
+            }
         } finally {
             setIsImporting(false);
             // Clear file input
@@ -84,14 +103,6 @@ export function ExportImportButtons({ filters }: ExportImportButtonsProps) {
         }
     };
 
-    const downloadTemplate = () => {
-        window.location.href = '/products/import/template';
-    };
-
-    const clearResult = () => {
-        setImportResult(null);
-    };
-
     return (
         <div className="flex items-center gap-2">
             {/* Export Button */}
@@ -99,7 +110,7 @@ export function ExportImportButtons({ filters }: ExportImportButtonsProps) {
                 variant="outline"
                 size="sm"
                 onClick={handleExport}
-                className="flex items-center gap-2"
+                className="cursor-pointer flex items-center gap-2"
             >
                 <Download size={16} />
                 Export
@@ -111,21 +122,10 @@ export function ExportImportButtons({ filters }: ExportImportButtonsProps) {
                 size="sm"
                 onClick={handleImportClick}
                 disabled={isImporting}
-                className="flex items-center gap-2"
+                className="cursor-pointer flex items-center gap-2"
             >
                 <Upload size={16} />
                 {isImporting ? 'Importing...' : 'Import'}
-            </Button>
-
-            {/* Template Button */}
-            <Button
-                variant="ghost"
-                size="sm"
-                onClick={downloadTemplate}
-                className="flex items-center gap-2"
-            >
-                <FileSpreadsheet size={16} />
-                Template
             </Button>
 
             {/* Hidden File Input */}
@@ -151,10 +151,10 @@ export function ExportImportButtons({ filters }: ExportImportButtonsProps) {
                     )}
                     <span>{importResult.message}</span>
                     <button 
-                        onClick={clearResult}
+                        // onClick={clearResult}
                         className="ml-2 text-gray-500 hover:text-gray-700"
                     >
-                        ×
+                        <X size={16} className="mr-2" /> Clear
                     </button>
                 </div>
             )}

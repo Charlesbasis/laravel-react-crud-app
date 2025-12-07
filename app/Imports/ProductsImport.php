@@ -19,11 +19,17 @@ class ProductsImport implements ToModel, WithHeadingRow, WithValidation, WithBat
      */
     public function model(array $row)
     {
+        $imageUrl = $row['image_url'] ?? null;
+
+        if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+            $imageUrl = ltrim($imageUrl, '/');
+        }
+
         return new Product([
             'name'        => $row['name'],
             'description' => $row['description'] ?? null,
             'price'       => $row['price'],
-            'image'       => $row['image_url'] ?? null,
+            'image'       => $imageUrl,
             'tag'         => $row['tags'] ?? null,
         ]);
     }
@@ -34,7 +40,7 @@ class ProductsImport implements ToModel, WithHeadingRow, WithValidation, WithBat
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
-            'image_url' => 'nullable|url',
+            'image_url' => 'nullable|string',
             'tags' => 'nullable|string',
         ];
     }
@@ -45,7 +51,7 @@ class ProductsImport implements ToModel, WithHeadingRow, WithValidation, WithBat
             'name.required' => 'Product name is required',
             'price.required' => 'Product price is required',
             'price.numeric' => 'Price must be a number',
-            'image_url.url' => 'Image URL must be a valid URL',
+            'image_url.string' => 'Image URL must be a string',
         ];
     }
 

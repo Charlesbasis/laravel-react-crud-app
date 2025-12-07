@@ -1,6 +1,8 @@
 import { InertiaLinkProps } from '@inertiajs/react';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import Papa from 'papaparse';
+import { saveAs } from 'file-saver';
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -48,3 +50,63 @@ export const validateTagName = (tag: string) : { isValid: boolean, errors: strin
         errors,
     };
 }
+
+export const exportToCsv = (data: any, filename: string) => {
+    const csv = Papa.unparse(data);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, `${filename}_${Date.now()}.csv`);
+};
+
+export const parseCSV = (file: File): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                resolve(results.data);
+            },
+            error: (error) => {
+                reject(error);
+            },
+        });
+    });
+};
+
+export const validateImportData = (data: any[]) => {
+    const errors: string[] = [];
+
+    data.forEach((row, index) => {
+        const rowNumber = index + 2;
+
+        if (!row.name || row.name.trim() === '') {
+            errors.push(`Row ${rowNumber}: Name cannot be empty`);
+        }
+
+        if (!row.price || row.price.trim() === '') {
+            errors.push(`Row ${rowNumber}: Price cannot be empty`);
+        }
+
+        if (!row.price || isNaN(parseFloat(row.price))) {
+            errors.push(`Row ${rowNumber}: Price must be a number`);
+        }
+        
+        if (row.price && parseFloat(row.price) < 0) {
+            errors.push(`Row ${rowNumber}: Price cannot be negative`);
+        }
+        
+        if (row.image_url && typeof row.image_url !== 'string') {
+            errors.push(`Row ${rowNumber}: Image URL must be a string`);
+        }
+    });
+
+    return errors;
+};
+
+export const isValidUrl = (url: string) => {
+    try {
+        new URL(url);
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
