@@ -106,9 +106,9 @@ export default function Index() {
 
         if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
 
-        searchTimeoutRef.current = setTimeout(() => {
+        // searchTimeoutRef.current = setTimeout(() => {
             fetchData({ search: value });
-        }, 500);
+        // }, 500);
     };
 
     const handlePriceChange = (min: string, max: string) => {
@@ -149,11 +149,11 @@ export default function Index() {
         });
     };
 
-    useEffect(() => {
-        return () => {
-            if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-        };
-    }, []);
+    // useEffect(() => {
+    //     return () => {
+    //         if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    //     };
+    // }, []);
 
     // console.log('📦 Products:', products);
     // useEffect(() => {
@@ -166,7 +166,15 @@ export default function Index() {
     // }, [currentPerPage, filters, products]);
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Products Management" />
+            <Head>
+                <title>Manage Products | Admin Dashboard</title>
+                <meta
+                    name="description"
+                    content="Manage products, pricing, tags, and inventory in the admin dashboard."
+                />
+            </Head>
+            <h1 className="sr-only">Manage Products</h1>
+
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-lg-xl p-4">
 
                 {/* Filters Toolbar */}
@@ -214,6 +222,9 @@ export default function Index() {
                 <div className="rounded-md border">
                     <table className='w-full table-auto'>
                         <thead className="bg-gray-100 dark:bg-gray-800">
+                            <caption className="sr-only">
+                                List of products with price, image, tags, and creation date
+                            </caption>
                             <tr className='text-left text-sm font-medium text-gray-500 dark:text-gray-300'>
                                 <th className='p-4 border-b'>#</th>
                                 <SortableHeader field="name" currentSort={sortConfig} onSort={handleSort} className='p-4 border-b'>Name</SortableHeader>
@@ -236,13 +247,21 @@ export default function Index() {
                             ) : (
                                 products?.data?.map((product, index) => (
                                     <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-                                        <td className='border-b px-4 py-2'>{index + 1}</td>
+                                        <td className='border-b px-4 py-2'>{(products.from ?? 1) + index}
+                                        </td>
                                         <td className='border-b px-4 py-2 font-medium'>{product.name}</td>
                                         <td className='border-b px-4 py-2 text-gray-500 truncate max-w-xs'>{product.description}</td>
                                         <td className='border-b px-4 py-2'>${product.price}</td>
                                         <td className='border-b px-4 py-2'>
                                             {product?.image ? (
-                                                <img src={product.image} alt={product.name} className='w-10 h-10 rounded object-cover' />
+                                                <img 
+                                                src={product.image} 
+                                                alt={product.name} 
+                                                className='w-10 h-10 rounded object-cover' 
+                                                width={100}
+                                                height={100}
+                                                loading='lazy'
+                                                />
                                             ) : (
                                                 <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xs">No Img</div>
                                             )}
