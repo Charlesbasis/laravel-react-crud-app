@@ -69,7 +69,10 @@ class ProductController extends Controller
 
         // Log::debug('Parsed per_page:', ['value' => $perPage, 'type' => gettype($perPage)]);
 
-        $products = $products->latest()->paginate($perPage)->withQueryString();        
+        if (!$request->filled('sort')) {
+            $products->latest();
+        }
+        $products = $products->paginate($perPage)->withQueryString();        
 
         $products->getCollection()->transform(fn($product) => [
             'id' => $product->id,
@@ -164,6 +167,7 @@ class ProductController extends Controller
                 ? asset('storage/' . $product->image)
                 : null,
             'tag' => $product->tags->pluck('tag')->toArray(),
+            'slug' => $product->slug,
         ];
 
         return Inertia::render('products/product-form', [

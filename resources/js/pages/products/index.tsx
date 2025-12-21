@@ -254,13 +254,13 @@ export default function Index() {
                                         <td className='border-b px-4 py-2'>${product.price}</td>
                                         <td className='border-b px-4 py-2'>
                                             {product?.image ? (
-                                                <img 
-                                                src={product.image} 
-                                                alt={product.name} 
-                                                className='w-10 h-10 rounded object-cover' 
-                                                width={100}
-                                                height={100}
-                                                loading='lazy'
+                                                <img
+                                                    src={product.image}
+                                                    alt={product.name}
+                                                    className='rounded object-cover'
+                                                    width={100}
+                                                    height={100}
+                                                    loading='lazy'
                                                 />
                                             ) : (
                                                 <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xs">No Img</div>

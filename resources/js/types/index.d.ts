@@ -57,6 +57,7 @@ export interface Product {
     created_at: string;
     tag: string[];
     tagInput: string;
+    slug: string;
 }
 
 export interface ProductPagination {

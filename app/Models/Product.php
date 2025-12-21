@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -24,4 +25,12 @@ class Product extends Model
         
         return $this->image ? asset('storage/' . $this->image) : null;
     }
+
+    protected static function booted()
+    {
+        static::creating(function ($product) {
+            $product->slug = Str::slug($product->name);
+        });
+    }
+
 }

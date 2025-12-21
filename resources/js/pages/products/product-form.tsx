@@ -1,5 +1,6 @@
 import { create as productsCreate, store as productsStore, update as productsUpdate } from '@/actions/App/Http/Controllers/ProductController';
 import InputError from '@/components/input-error';
+import ProductSchema from '@/components/SEO/ProductSchema';
 import { TagCombobox } from '@/components/tags/TagCombobox';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -72,7 +73,12 @@ export default function ProductForm({ ...props }) {
     
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Product Form" />
+            <Head>
+                <title>Product Form</title>
+                <meta name="description" content="Create or update a product" />
+            </Head>
+
+            <ProductSchema product={product} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
 
                 <Card>
@@ -164,7 +170,14 @@ export default function ProductForm({ ...props }) {
                                     <Label htmlFor="Image" className="block text-sm font-medium text-gray-700">
                                         Current Image
                                     </Label>
-                                    <img src={product.image} alt={product.name} className='w-20 h-20 object-cover' />
+                                    <img
+                                        src={product.image}
+                                        alt={product.name}
+                                        className='rounded object-cover'
+                                        width={100}
+                                        height={100}
+                                        loading='lazy'
+                                    />
                                 </div>
                             )}
 
