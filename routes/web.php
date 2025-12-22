@@ -23,4 +23,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('products', ProductController::class);
 });
 
+Route::middleware(['auth', 'verified'])->prefix('api')->group(function () {
+    
+    // Dashboard-specific API routes
+    Route::prefix('dashboard')->name('dashboard.')->group(function () {
+        Route::get('/stats', [ProductController::class, 'dashboardStats'])
+            ->name('stats');
+        
+        Route::get('/activity', [ProductController::class, 'getActivityLog'])
+            ->name('activity');        
+        
+    });
+});
+
 require __DIR__.'/settings.php';

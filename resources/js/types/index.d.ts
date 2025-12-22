@@ -161,3 +161,88 @@ export interface PerPageSelectorProps {
     route: string;
     className?: string;
 }
+
+export interface DashboardStatsResponse {
+    basic_stats: {
+        total_products: number;
+        total_value: number;
+        avg_price: number;
+        min_price: number;
+        max_price: number;
+    };
+    growth_stats: {
+        products: number;
+        value: number;
+        recent_products: number;
+        today_products: number;
+    };
+    category_distribution: Array<{
+        name: string;
+        count: number;
+        percentage: number;
+    }>;
+    price_distribution: Array<{
+        label: string;
+        count: number;
+        min: number | null;
+        max: number | null;
+    }>;
+    recent_products: Array<{
+        id: number;
+        name: string;
+        price: number;
+        created_at: string;
+        tag: string;
+        status: 'active' | 'draft' | 'archived';
+    }>;
+    status_summary: {
+        active: number;
+        draft: number;
+        total: number;
+    };
+    timestamps: {
+        calculated_at: string;
+        cache_expires: string;
+    };
+}
+
+export interface ActivityResponse {
+    activities: Array<{
+        id: number;
+        action: string;
+        description: string;
+        timestamp: string;
+        user: string;
+        price?: number;
+        category?: string;
+    }>;
+    total: number;
+}
+
+export interface DashboardStats {
+  totalProducts: number;
+  totalValue: number;
+  avgPrice: number;
+  recentActivity: number;
+  todayProducts: number;
+  growth: {
+    products: number;
+    value: number;
+  };
+  statusSummary: {
+    active: number;
+    draft: number;
+    total: number;
+  };
+  categoryDistribution: Array<{
+    name: string;
+    count: number;
+    percentage: number;
+  }>;
+  priceDistribution: Array<{
+    label: string;
+    count: number;
+    min: number | null;
+    max: number | null;
+  }>;
+}
