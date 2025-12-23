@@ -190,13 +190,14 @@ export default function Dashboard() {
   };
 
   // Fetch dashboard data
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (signal?: AbortSignal) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Fetch stats
       const statsResponse = await fetch('/api/dashboard/stats', {
+        signal,
         headers: {
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
@@ -209,7 +210,7 @@ export default function Dashboard() {
       }
 
       const statsData: DashboardStatsResponse = await statsResponse.json();
-      
+
       // Safely transform stats data
       setStats({
         totalProducts: safeParseNumber(statsData.basic_stats.total_products),
@@ -226,35 +227,35 @@ export default function Dashboard() {
           draft: safeParseNumber(statsData.status_summary?.draft),
           total: safeParseNumber(statsData.status_summary?.total)
         },
-        categoryDistribution: Array.isArray(statsData.category_distribution) 
+        categoryDistribution: Array.isArray(statsData.category_distribution)
           ? statsData.category_distribution.map(item => ({
-              name: item?.name || 'Uncategorized',
-              count: safeParseNumber(item?.count),
-              percentage: safeParseNumber(item?.percentage)
-            }))
+            name: item?.name || 'Uncategorized',
+            count: safeParseNumber(item?.count),
+            percentage: safeParseNumber(item?.percentage)
+          }))
           : [],
         priceDistribution: Array.isArray(statsData.price_distribution)
           ? statsData.price_distribution.map(item => ({
-              label: item?.label || '',
-              count: safeParseNumber(item?.count),
-              min: safeParseNumber(item?.min),
-              max: safeParseNumber(item?.max)
-            }))
+            label: item?.label || '',
+            count: safeParseNumber(item?.count),
+            min: safeParseNumber(item?.min),
+            max: safeParseNumber(item?.max)
+          }))
           : []
       });
 
       // Safely set recent products
       const safeRecentProducts = Array.isArray(statsData.recent_products)
         ? statsData.recent_products.map(product => ({
-            id: safeParseNumber(product?.id),
-            name: product?.name || 'Unnamed Product',
-            price: safeParseNumber(product?.price),
-            created_at: product?.created_at || 'Just now',
-            tag: product?.tag || 'Uncategorized',
-            status: (product?.status === 'active' || product?.status === 'draft' || product?.status === 'archived') 
-              ? product.status 
-              : 'draft'
-          }))
+          id: safeParseNumber(product?.id),
+          name: product?.name || 'Unnamed Product',
+          price: safeParseNumber(product?.price),
+          created_at: product?.created_at || 'Just now',
+          tag: product?.tag || 'Uncategorized',
+          status: (product?.status === 'active' || product?.status === 'draft' || product?.status === 'archived')
+            ? product.status
+            : 'draft'
+        }))
         : [];
 
       setRecentProducts(safeRecentProducts);
@@ -272,19 +273,19 @@ export default function Dashboard() {
 
         if (activityResponse.ok) {
           const activityData: ActivityResponse = await activityResponse.json();
-          
+
           const safeActivities = Array.isArray(activityData.activities)
             ? activityData.activities.map(activity => ({
-                id: safeParseNumber(activity?.id),
-                action: activity?.action || 'UPDATE',
-                description: activity?.description || 'Activity',
-                timestamp: activity?.timestamp || 'Just now',
-                user: activity?.user || 'System',
-                price: safeParseNumber(activity?.price),
-                category: activity?.category || 'Uncategorized'
-              }))
+              id: safeParseNumber(activity?.id),
+              action: activity?.action || 'UPDATE',
+              description: activity?.description || 'Activity',
+              timestamp: activity?.timestamp || 'Just now',
+              user: activity?.user || 'System',
+              price: safeParseNumber(activity?.price),
+              category: activity?.category || 'Uncategorized'
+            }))
             : [];
-          
+
           setActivityLog(safeActivities);
         }
       } catch (activityError) {
@@ -292,10 +293,15 @@ export default function Dashboard() {
         // Don't fail the whole dashboard if activity log fails
       }
 
-    } catch (error) {
+    } catch (error: any) {
+      // 1. Check if the error is a deliberate cancellation
+      if (error.name === 'AbortError') {
+        console.log('Fetch aborted: Page changed or component unmounted.');
+        return; // Exit quietly, don't show an error to the user
+      }
       console.error('Error fetching dashboard data:', error);
       setError('Failed to load dashboard data. Please try again.');
-      
+
       // Set fallback data
       setStats({
         totalProducts: 0,
@@ -308,7 +314,7 @@ export default function Dashboard() {
         categoryDistribution: [],
         priceDistribution: []
       });
-      
+
       setRecentProducts([]);
       setActivityLog([]);
     } finally {
@@ -318,34 +324,28 @@ export default function Dashboard() {
 
   // Fetch data on component mount
   useEffect(() => {
-    fetchDashboardData();
-    
-    // Set up auto-refresh every 5 minutes
-    const refreshInterval = setInterval(fetchDashboardData, 5 * 60 * 1000);
-    
-    return () => clearInterval(refreshInterval);
+    const controller = new AbortController();
+
+    const fetchWithCleanup = () => {
+      // Only hit the VPS if the tab is active
+      if (document.visibilityState === 'visible') {
+        fetchDashboardData(controller.signal);
+      }
+    };
+
+    fetchWithCleanup();
+
+    const refreshInterval = setInterval(fetchWithCleanup, 5 * 60 * 1000);
+
+    return () => {
+      controller.abort(); // Cancel the request if the component unmounts
+      clearInterval(refreshInterval);
+    };
   }, []);
 
   // Handle refresh button click
   const handleRefresh = () => {
     fetchDashboardData();
-  };
-
-  // Handle quick action clicks
-  const handleQuickAction = (action: string) => {
-    switch (action) {
-      case 'import':
-        router.visit('/products?action=import');
-        break;
-      case 'export':
-        window.location.href = '/products/export';
-        break;
-      case 'reports':
-        router.visit('/reports');
-        break;
-      default:
-        break;
-    }
   };
 
   // Loading skeleton component
@@ -643,56 +643,6 @@ export default function Dashboard() {
 
         {/* Data Visualization Section */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Category Distribution */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold">Category Distribution</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Products by category</p>
-            </div>
-            {stats.categoryDistribution.length === 0 ? (
-              <div className="py-8 text-center">
-                <Info className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-gray-500 dark:text-gray-400">No categories found</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {stats.categoryDistribution.map((category, index) => {
-                  const percentage = stats.totalProducts > 0 
-                    ? (category.count / stats.totalProducts) * 100 
-                    : 0;
-                  const colorClasses = [
-                    'bg-blue-500',
-                    'bg-green-500',
-                    'bg-yellow-500',
-                    'bg-red-500',
-                    'bg-purple-500',
-                    'bg-pink-500',
-                    'bg-indigo-500',
-                    'bg-teal-500',
-                  ];
-                  const colorClass = colorClasses[index % colorClasses.length];
-                  
-                  return (
-                    <div key={category.name} className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className={`mr-3 h-3 w-3 rounded-full ${colorClass}`} />
-                        <span className="text-sm font-medium">{category.name}</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <span className="text-sm font-medium">{category.count} ({category.percentage.toFixed(1)}%)</span>
-                        <div className="h-2 w-24 rounded-full bg-gray-200 dark:bg-gray-700">
-                          <div 
-                            className={`h-full rounded-full ${colorClass}`}
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
 
           {/* Price Distribution */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">

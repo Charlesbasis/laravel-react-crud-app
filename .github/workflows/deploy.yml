@@ -1,0 +1,47 @@
+name: Deploy Laravel + React 
+
+on:
+  push:
+    branches: [master-seo]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ⚙️ Setup PHP & Node
+        uses: shivammathur/setup-php@v2
+        with: { php-version: '8.3' }
+      - uses: pnpm/action-setup@v3
+        with: { version: 9 }
+
+      - name: 📦 Install & Build (Frontend SSR)
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build:ssr # Crucial for SEO
+
+      - name: 📦 Install PHP Dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: 🚀 Sync to VPS
+        uses: easingthemes/ssh-deploy@v5.1.0
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST }}
+          REMOTE_USER: ${{ secrets.USER }}
+          TARGET: /home/cvhowlad/app3.cvhowlader.com
+          # Note: We NOW include 'vendor' and 'public/build' to avoid server-side building
+          ARGS: "-rlgoDzvc --delete --exclude='.env' --exclude='node_modules/' --exclude='storage/' --exclude='.git*'"
+
+      - name: 🧩 Post-Deployment
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/cvhowlad/app3.cvhowlader.com
+            php artisan optimize
+            # Start/Restart SSR using PM2
+            pm2 startOrRestart ecosystem.config.cjs
