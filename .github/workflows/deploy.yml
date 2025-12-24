@@ -7,23 +7,35 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
+        steps:
       - uses: actions/checkout@v4
 
       - name: ⚙️ Setup PHP & Node
         uses: shivammathur/setup-php@v2
         with: { php-version: '8.3' }
+        
       - uses: pnpm/action-setup@v3
         with: { version: 9 }
 
-      - name: 📦 Install & Build (Frontend SSR)
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm run build:ssr # Crucial for SEO
+      # 1. Create .env file (Artisan needs this)
+      - name: 📝 Prepare Environment
+        run: cp .env.example .env
 
+      # 2. Install PHP dependencies FIRST
       - name: 📦 Install PHP Dependencies
         run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
+      # 3. Generate Key (Required for some Artisan commands)
+      - name: 🔑 Generate App Key
+        run: php artisan key:generate
+
+      # 4. Now install JS and Build
+      - name: 📦 Install & Build (Frontend SSR)
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build:ssr
+
+      # 5. Sync to VPS
       - name: 🚀 Sync to VPS
         uses: easingthemes/ssh-deploy@v5.1.0
         env:
@@ -31,9 +43,9 @@ jobs:
           REMOTE_HOST: ${{ secrets.HOST }}
           REMOTE_USER: ${{ secrets.USER }}
           TARGET: /home/cvhowlad/app3.cvhowlader.com
-          # Note: We NOW include 'vendor' and 'public/build' to avoid server-side building
           ARGS: "-rlgoDzvc --delete --exclude='.env' --exclude='node_modules/' --exclude='storage/' --exclude='.git*'"
 
+      # 6. Post-Deployment
       - name: 🧩 Post-Deployment
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -43,5 +55,4 @@ jobs:
           script: |
             cd /home/cvhowlad/app3.cvhowlader.com
             php artisan optimize
-            # Start/Restart SSR using PM2
             pm2 startOrRestart ecosystem.config.cjs
