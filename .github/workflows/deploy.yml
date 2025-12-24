@@ -22,7 +22,7 @@ jobs:
           pnpm run build:ssr # Crucial for SEO
 
       - name: 📦 Install PHP Dependencies
-        run: composer install --no-dev --optimize-autoloader
+        run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
       - name: 🚀 Sync to VPS
         uses: easingthemes/ssh-deploy@v5.1.0
