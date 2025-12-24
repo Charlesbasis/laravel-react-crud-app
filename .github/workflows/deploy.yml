@@ -37,23 +37,18 @@ jobs:
 
       # 5. Sync to VPS
       - name: Deploy to Server
-        uses: easingthemes/ssh-deploy@main
+        uses: easingthemes/ssh-deploy@v5.1.0
         with:
-            SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-            # ARGS: "-rlgoDzvc -i --delete"
-            # SOURCE: "dist/"
-            REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-            REMOTE_USER: ${{ secrets.REMOTE_USER }}
-            # TARGET: ${{ secrets.REMOTE_TARGET }}
-            # EXCLUDE: "/dist/, /node_modules/"
-        # uses: easingthemes/ssh-deploy@v5.1.0
-        # with:
-        #   SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        #   REMOTE_HOST: ${{ secrets.REMOTE_HOST }} # Maps to app3.cvhowlader.com
-        #   REMOTE_USER: ${{ secrets.REMOTE_USER }} # Maps to cvhowlad
-        #   TARGET: /home/cvhowlad/app3.cvhowlader.com
-        #   ARGS: "-rlgoDzvc --delete --exclude='.env' --exclude='node_modules/' --exclude='storage/' --exclude='.git*'"
-        #   SSH_CMD_ARGS: "-o StrictHostKeyChecking=no"
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          REMOTE_PORT: 22
+          # Specify what folder to upload. Use './' for the entire root.
+          SOURCE: "./" 
+          # This must match your server's path exactly
+          TARGET: "/home/cvhowlad/app3.cvhowlader.com"
+          ARGS: "-rlgoDzvc --delete --exclude='.env' --exclude='node_modules/' --exclude='storage/' --exclude='.git*'"
+          SSH_CMD_ARGS: "-o StrictHostKeyChecking=no"
 
       # 6. Post-Deployment
       - name: 🧩 Post-Deployment
