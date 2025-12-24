@@ -56,4 +56,4 @@ jobs:
           script: |
             cd /home/cvhowlad/app3.cvhowlader.com
             php artisan optimize
-            /.npm-global/bin/pm2 startOrRestart ecosystem.config.cjs
+            /home/cvhowlad/.npm-global/bin/pm2 startOrRestart ecosystem.config.cjs
