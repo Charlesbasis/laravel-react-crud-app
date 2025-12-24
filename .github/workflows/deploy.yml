@@ -50,8 +50,8 @@ jobs:
       - name: 🧩 Post-Deployment
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/cvhowlad/app3.cvhowlader.com
