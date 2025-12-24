@@ -148,22 +148,7 @@ export default function Index() {
             preserveState: true,
         });
     };
-
-    // useEffect(() => {
-    //     return () => {
-    //         if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    //     };
-    // }, []);
-
-    // console.log('📦 Products:', products);
-    // useEffect(() => {
-    //     console.log('📊 Current props:', {
-    //         currentPerPage,
-    //         type: typeof currentPerPage,
-    //         filters,
-    //         productsPerPage: products?.per_page
-    //     });
-    // }, [currentPerPage, filters, products]);
+    
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head>

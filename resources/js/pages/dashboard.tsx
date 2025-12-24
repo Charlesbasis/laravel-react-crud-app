@@ -400,7 +400,7 @@ export default function Dashboard() {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Dashboard" />
-      <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
+      <div className="overflow-x-auto flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
         {/* Header with Refresh */}
         <div className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white shadow-lg">
           <div className="flex flex-col justify-between md:flex-row md:items-center">

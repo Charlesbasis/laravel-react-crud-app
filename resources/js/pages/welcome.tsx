@@ -75,34 +75,40 @@ export default function Welcome({
                 <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/80">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <div className="flex h-16 items-center justify-between">
-                            <div className="flex items-center">
-                                <Database className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                                <span className="ml-2 text-xl font-bold">ProductManager</span>
+                            {/* Logo Section */}
+                            <div className="flex items-center shrink-0">
+                                <Database className="h-6 w-6 text-blue-600 dark:text-blue-400 sm:h-8 sm:w-8" />
+                                <span className="ml-2 text-lg font-bold sm:text-xl">ProductManager</span>
                             </div>
-                            <nav className="flex items-center space-x-4">
+
+                            {/* Navigation Section */}
+                            <nav className="flex items-center space-x-2 sm:space-x-4">
                                 {auth.user ? (
                                     <Link
                                         href={dashboard()}
-                                        className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                                        className="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-bold text-white hover:bg-blue-700 sm:px-4"
                                     >
-                                        Go to Dashboard
-                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                        <span className="hidden sm:inline">Go to Dashboard</span>
+                                        <span className="sm:hidden">Dashboard</span>
+                                        <ArrowRight className="ml-1 h-4 w-4 sm:ml-2" />
                                     </Link>
                                 ) : (
                                     <>
                                         <Link
                                             href={login()}
-                                            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                                            className="rounded-lg px-2 py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 dark:text-gray-300 sm:px-4"
                                         >
                                             Sign In
                                         </Link>
                                         {canRegister && (
                                             <Link
                                                 href={register()}
-                                                className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                                                className="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-bold text-white hover:bg-blue-700 sm:px-4"
                                             >
-                                                Get Started Free
-                                                <ArrowRight className="ml-2 h-4 w-4" />
+                                                {/* Text changes on mobile to save space */}
+                                                <span className="hidden sm:inline">Get Started Free</span>
+                                                <span className="sm:hidden">Join</span>
+                                                <ArrowRight className="ml-1 h-4 w-4 sm:ml-2" />
                                             </Link>
                                         )}
                                     </>
