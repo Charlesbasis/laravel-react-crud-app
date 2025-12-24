@@ -1,4 +1,4 @@
-name: Secret Debugger
+name: Secret debugger
 on: [push]
 jobs:
   debug:
