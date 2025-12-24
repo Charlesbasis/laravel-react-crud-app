@@ -12,7 +12,7 @@ jobs:
 
       - name: ⚙️ Setup PHP & Node
         uses: shivammathur/setup-php@v2
-        with: { php-version: '8.3' }
+        with: { php-version: '8.2.29' }
         
       - uses: pnpm/action-setup@v3
         with: { version: 9 }
@@ -56,4 +56,4 @@ jobs:
           script: |
             cd /home/cvhowlad/app3.cvhowlader.com
             php artisan optimize
-            pm2 startOrRestart ecosystem.config.cjs
+            /.npm-global/bin/pm2 startOrRestart ecosystem.config.cjs
