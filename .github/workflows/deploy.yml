@@ -36,14 +36,15 @@ jobs:
           pnpm run build:ssr
 
       # 5. Sync to VPS
-      - name: 🚀 Sync to VPS
+      - name: Deploy to Server
         uses: easingthemes/ssh-deploy@v5.1.0
-        env:
+        with:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.HOST }}
-          REMOTE_USER: ${{ secrets.USER }}
-          TARGET: /home/cvhowlad/app3.cvhowlader.com
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: /home/path/to/dir
           ARGS: "-rlgoDzvc --delete --exclude='.env' --exclude='node_modules/' --exclude='storage/' --exclude='.git*'"
+          SSH_CMD_ARGS: "-o StrictHostKeyChecking=no"
 
       # 6. Post-Deployment
       - name: 🧩 Post-Deployment
