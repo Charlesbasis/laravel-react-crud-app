@@ -1,0 +1,59 @@
+name: Deploy Laravel + React 
+
+on:
+  push:
+    branches: [master-seo]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ⚙️ Setup PHP & Node
+        uses: shivammathur/setup-php@v2
+        with: { php-version: '8.2.29' }
+        
+      - uses: pnpm/action-setup@v3
+        with: { version: 9 }
+
+      # 1. Create .env file (Artisan needs this)
+      - name: 📝 Prepare Environment
+        run: cp .env.example .env
+
+      # 2. Install PHP dependencies FIRST
+      - name: 📦 Install PHP Dependencies
+        run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      # 3. Generate Key (Required for some Artisan commands)
+      - name: 🔑 Generate App Key
+        run: php artisan key:generate
+
+      # 4. Now install JS and Build
+      - name: 📦 Install & Build (Frontend SSR)
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build:ssr
+
+      # 5. Sync to VPS
+      - name: Deploy to Server
+        uses: easingthemes/ssh-deploy@v5.1.0
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: "/home/cvhowlad/app3.cvhowlader.com"
+          SOURCE: "./"
+          REMOTE_PORT: 22
+
+      # 6. Post-Deployment
+      - name: 🧩 Post-Deployment
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/cvhowlad/app3.cvhowlader.com
+            php artisan optimize
+            /home/cvhowlad/.npm-global/bin/pm2 startOrRestart ecosystem.config.cjs

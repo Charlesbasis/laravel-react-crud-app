@@ -4,12 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
     protected $fillable = [ 'name', 'description', 'image', 'price', 'is_active' ];
 
     protected $appends = ['image_url'];
+
+    protected $casts = [
+        'price' => 'float', // Add this line
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     public function tags(): BelongsToMany
     {
@@ -24,4 +31,12 @@ class Product extends Model
         
         return $this->image ? asset('storage/' . $this->image) : null;
     }
+
+    protected static function booted()
+    {
+        static::creating(function ($product) {
+            $product->slug = Str::slug($product->name);
+        });
+    }
+
 }

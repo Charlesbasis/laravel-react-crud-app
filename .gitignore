@@ -26,5 +26,3 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
-pnpm-lock.yaml
-composer.lock
