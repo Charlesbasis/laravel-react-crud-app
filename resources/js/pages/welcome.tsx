@@ -69,8 +69,8 @@ export default function Welcome({
                     })}
                 </script>
             </Head>
-            
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white text-gray-900 dark:from-gray-900 dark:to-gray-950 dark:text-gray-100">
+
+            <div className="min-h-screen bg-linear-to-br from-gray-50 to-white text-gray-900 dark:from-gray-900 dark:to-gray-950 dark:text-gray-100">
                 {/* Navigation */}
                 <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/80">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -83,6 +83,12 @@ export default function Welcome({
 
                             {/* Navigation Section */}
                             <nav className="flex items-center space-x-2 sm:space-x-4">
+                                <Link
+                                    href="/blog"
+                                    className="rounded-lg px-2 py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 dark:text-gray-300 sm:px-4"
+                                >
+                                    Blog
+                                </Link>
                                 {auth.user ? (
                                     <Link
                                         href={dashboard()}
@@ -158,7 +164,7 @@ export default function Welcome({
                                     Packed with features that make product management effortless
                                 </p>
                             </div>
-                            
+
                             <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                                 <FeatureCard
                                     icon={<Database className="h-8 w-8 text-blue-600 dark:text-blue-400" />}
@@ -203,7 +209,7 @@ export default function Welcome({
                                     Get started in minutes, master in hours
                                 </p>
                             </div>
-                            
+
                             <div className="mt-16">
                                 <div className="grid gap-8 lg:grid-cols-3">
                                     <StepCard
@@ -227,7 +233,7 @@ export default function Welcome({
                     </section>
 
                     {/* CTA Section */}
-                    <section className="bg-gradient-to-r from-blue-600 to-indigo-600 py-20">
+                    <section className="bg-linear-to-r from-blue-600 to-indigo-600 py-20">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                             <div className="text-center">
                                 <h2 className="text-3xl font-bold text-white sm:text-4xl">
