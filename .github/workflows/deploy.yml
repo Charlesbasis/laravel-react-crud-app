@@ -12,7 +12,7 @@ jobs:
 
       - name: ⚙️ Setup PHP & Node
         uses: shivammathur/setup-php@v2
-        with: { php-version: '8.2.29' }
+        with: { php-version: '8.2.30' }
         
       - uses: pnpm/action-setup@v3
         with: { version: 9 }
