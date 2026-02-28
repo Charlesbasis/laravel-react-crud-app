@@ -41,12 +41,12 @@ export default function AuthSplitLayout({
                 )}
             </div>
             <div className="w-full lg:p-8">
-                <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[380px]">
+                <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[380px] md:space-y-8">
                     <Link
                         href={home()}
                         className="relative z-20 flex items-center justify-center lg:hidden"
                     >
-                        <AppLogoIcon className="h-12 fill-current text-black dark:text-white" />
+                        <AppLogoIcon className="h-10 fill-current text-black dark:text-white" />
                     </Link>
                     <div className="flex flex-col space-y-2 text-center">
                         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
