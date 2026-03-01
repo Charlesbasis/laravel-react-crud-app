@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Database, ArrowRight, Calendar } from 'lucide-react';
+import PublicFooter from '@/components/public-footer';
 
 interface Post {
     id: number;
@@ -14,7 +15,7 @@ export default function BlogIndex({ posts, error }: { posts: Post[], error?: str
     return (
         <>
             <Head title="Blog | Product Manager" />
-            
+
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
                 {/* Simple Nav */}
                 <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80">
@@ -46,9 +47,9 @@ export default function BlogIndex({ posts, error }: { posts: Post[], error?: str
                             <article key={post.id} className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
                                 {post.featured_image && (
                                     <div className="aspect-video w-full overflow-hidden">
-                                        <img 
-                                            src={post.featured_image} 
-                                            alt={post.title} 
+                                        <img
+                                            src={post.featured_image}
+                                            alt={post.title}
                                             className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                                         />
                                     </div>
@@ -61,12 +62,12 @@ export default function BlogIndex({ posts, error }: { posts: Post[], error?: str
                                     <h2 className="mb-4 text-xl font-bold leading-tight text-slate-900 dark:text-white line-clamp-2">
                                         {post.title}
                                     </h2>
-                                    <div 
+                                    <div
                                         className="mb-6 text-slate-600 dark:text-slate-400 line-clamp-3 prose prose-sm dark:prose-invert"
                                         dangerouslySetInnerHTML={{ __html: post.excerpt }}
                                     />
                                     <div className="mt-auto">
-                                        <Link 
+                                        <Link
                                             href={`/blog/${post.slug}`}
                                             className="inline-flex items-center font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                                         >
@@ -85,6 +86,7 @@ export default function BlogIndex({ posts, error }: { posts: Post[], error?: str
                         </div>
                     )}
                 </main>
+                <PublicFooter />
             </div>
         </>
     );

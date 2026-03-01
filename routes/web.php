@@ -27,6 +27,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/blog', [\App\Http\Controllers\BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}', [\App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
 
+// Policy Routes
+Route::get('/privacy-policy', function () {
+    return Inertia::render('privacy-policy');
+})->name('privacy-policy');
+
+Route::get('/terms-of-service', function () {
+    return Inertia::render('terms-of-service');
+})->name('terms-of-service');
+
+Route::get('/cookie-policy', function () {
+    return Inertia::render('cookie-policy');
+})->name('cookie-policy');
+
 Route::middleware(['auth', 'verified'])->prefix('api')->group(function () {
 
     // Dashboard-specific API routes

@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Database, ArrowLeft, Calendar } from 'lucide-react';
+import PublicFooter from '@/components/public-footer';
 
 interface Post {
     id: number;
@@ -68,6 +69,7 @@ export default function BlogPost({ post }: { post: Post }) {
                         </Link>
                     </div>
                 </main>
+                <PublicFooter />
             </div>
         </>
     );

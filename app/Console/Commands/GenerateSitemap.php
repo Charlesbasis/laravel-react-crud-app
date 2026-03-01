@@ -48,6 +48,25 @@ class GenerateSitemap extends Command
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_HOURLY)
         );
 
+        // Add Policy Pages
+        $sitemap->add(
+            Url::create(route('privacy-policy'))
+                ->setPriority(0.5)
+                ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
+        );
+
+        $sitemap->add(
+            Url::create(route('terms-of-service'))
+                ->setPriority(0.5)
+                ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
+        );
+
+        $sitemap->add(
+            Url::create(route('cookie-policy'))
+                ->setPriority(0.5)
+                ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
+        );
+
         // 2. Add Dynamic Content (Products)
         // Adjust this logic if products are behind authentication
         Product::all()->each(function (Product $product) use ($sitemap) {

@@ -10,6 +10,7 @@ import {
     Shield,
     Zap
 } from 'lucide-react';
+import PublicFooter from '@/components/public-footer';
 
 export default function Welcome({
     canRegister = true,
@@ -257,19 +258,7 @@ export default function Welcome({
                 </main>
 
                 {/* Footer */}
-                <footer className="border-t border-gray-200 bg-gray-50 py-12 dark:border-gray-800 dark:bg-gray-900">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <div className="flex flex-col items-center justify-between md:flex-row">
-                            <div className="flex items-center">
-                                <Database className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                                <span className="ml-2 text-lg font-bold">ProductManager</span>
-                            </div>
-                            <p className="mt-4 text-sm text-gray-600 dark:text-gray-400 md:mt-0">
-                                © {new Date().getFullYear()} Product Manager by <a href="https://www.cvhowlader.com" target="_blank" rel="noopener noreferrer">CVHowlader</a>. All rights reserved.
-                            </p>
-                        </div>
-                    </div>
-                </footer>
+                <PublicFooter />
             </div>
         </>
     );
