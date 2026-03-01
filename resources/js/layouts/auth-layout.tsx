@@ -6,7 +6,7 @@ export default function AuthLayout({
     children,
     title,
     description,
-    layout = 'split',
+    layout = 'card',
     ...props
 }: {
     children: React.ReactNode;

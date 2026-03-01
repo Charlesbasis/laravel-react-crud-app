@@ -27,13 +27,6 @@ export default function Welcome({
     return (
         <>
             <Head title={pageTitle}>
-                {/* <script async src="https://www.googletagmanager.com/gtag/js?id=G-YOUR_ID"></script>
-                <script>
-                    window.dataLayer = window.dataLayer || [];
-                    function gtag(){dataLayer.push(arguments);}
-                    gtag('js', new Date());
-                    gtag('config', 'G-YOUR_ID');
-                </script> */}
                 <link rel="preconnect" href="https://fonts.bunny.net" />
                 <link
                     href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700"
