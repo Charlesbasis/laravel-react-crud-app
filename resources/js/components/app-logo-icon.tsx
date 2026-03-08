@@ -1,10 +1,12 @@
-import { Database } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Database, type LucideProps } from 'lucide-react';
 
-export default function AppLogoIcon() {
+export default function AppLogoIcon(props: LucideProps) {
     return (
-        <div className="flex items-center shrink-0">
-            <Database className="h-6 w-6 text-blue-600 dark:text-blue-400 sm:h-8 sm:w-8" />
-            <span className="ml-2 text-lg font-bold sm:text-xl">ProductManager</span>
-        </div>
+        <Database
+            strokeWidth={2.25}
+            {...props}
+            className={cn('size-5', props.className)}
+        />
     );
 }
