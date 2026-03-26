@@ -2,7 +2,7 @@ name: Deploy Laravel + React
 
 on:
   push:
-    branches: [master-seo]
+    branches: [master]
 
 jobs:
   deploy:
