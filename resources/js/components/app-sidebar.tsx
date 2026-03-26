@@ -1,4 +1,4 @@
-import { NavFooter } from '@/components/nav-footer';
+import { index as products } from '@/actions/App/Http/Controllers/ProductController';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -13,9 +13,8 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, ShoppingBag } from 'lucide-react';
+import { LayoutGrid, ShoppingBag } from 'lucide-react';
 import AppLogo from './app-logo';
-import { index as products } from '@/actions/App/Http/Controllers/ProductController';
 
 const mainNavItems: NavItem[] = [
     {
@@ -27,19 +26,6 @@ const mainNavItems: NavItem[] = [
         title: 'Manage Products',
         href: products().url,
         icon: ShoppingBag,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
     },
 ];
 
@@ -63,7 +49,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
